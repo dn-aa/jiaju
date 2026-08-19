@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from core.config import settings
 from core.exception import register_exception_handlers
-from routers import auth, cms, dashboard, files, leads, public
+from routers import auth, cms, dashboard, files, leads, public, sys
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
@@ -33,6 +33,7 @@ app.include_router(auth.router)
 app.include_router(cms.router)
 app.include_router(leads.router)
 app.include_router(dashboard.router)
+app.include_router(sys.router)
 app.include_router(files.router)
 
 # 本地存储文件静态暴露（Nginx 生产同规则）

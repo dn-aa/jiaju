@@ -18,6 +18,9 @@ import JobManage from '../pages/recruit/Job';
 import ApplicationManage from '../pages/recruit/Application';
 import AppointmentManage from '../pages/leads/Appointment';
 import MessageManage from '../pages/leads/Message';
+import AccountManage from '../pages/sys/Account';
+import RoleManage from '../pages/sys/Role';
+import LogManage from '../pages/sys/Log';
 import { useAuthStore } from '../store/auth';
 
 // 守卫：无 token 一律回登录页
@@ -51,6 +54,10 @@ const MODULES: Record<string, React.ReactNode> = {
   '/recruit/application': <ApplicationManage />,
   '/leads/appointment': <AppointmentManage />,
   '/leads/message': <MessageManage />,
+  // 阶段 4：系统管理
+  '/sys/account': <AccountManage />,
+  '/sys/role': <RoleManage />,
+  '/sys/log': <LogManage />,
 };
 
 // 主布局内的子路由：从已实现模块 + 占位生成
@@ -73,7 +80,7 @@ export const router = createBrowserRouter([
     ),
     // 子路由动态生成：依据当前菜单（刷新后先取 store；首次进入由布局拉取菜单）
     children: [
-      ...moduleRoutes(['/dashboard', '/content/product', '/content/case', '/content/article', '/content/page', '/recruit/job', '/recruit/application', '/leads/appointment', '/leads/message']),
+      ...moduleRoutes(['/dashboard', '/content/product', '/content/case', '/content/article', '/content/page', '/recruit/job', '/recruit/application', '/leads/appointment', '/leads/message', '/sys/account', '/sys/role', '/sys/log']),
       { path: '403', element: <NoPerm /> },
       { path: '*', element: <Navigate to="/dashboard" replace /> },
     ],
