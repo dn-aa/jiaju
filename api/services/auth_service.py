@@ -10,7 +10,7 @@ from core.security import (
     hash_password, verify_password,
 )
 from deps.auth import match_permission
-from models.org import User
+from models.org import Role, User
 from schemas.common import LoginOut, MenuItem, TokenOut, UserBrief
 
 # ---------- 菜单定义（PRD §8 角色权限矩阵 / 开发技术文档附录 E） ----------
@@ -52,6 +52,14 @@ def _filter_menu(items: list[MenuItem], perms: list) -> list[MenuItem]:
     return out
 
 
+def user_brief(db: Session, user: User) -> UserBrief:
+    """构建用户信息（附带角色权限集合，供前端按钮级权限 Auth 使用）。"""
+    role = db.get(Role, user.role_id) if user.role_id else None
+    brief = UserBrief.model_validate(user)
+    brief.permissions = role.permissions if role else []
+    return brief
+
+
 def login(db: Session, username: str, password: str) -> LoginOut:
     user = db.query(User).filter(User.username == username).first()
     # 统一模糊报错，不泄露用户是否存在
@@ -64,7 +72,7 @@ def login(db: Session, username: str, password: str) -> LoginOut:
     return LoginOut(
         access_token=create_access_token(user.id),
         refresh_token=create_refresh_token(user.id),
-        user=UserBrief.model_validate(user),
+        user=user_brief(db, user),
     )
 
 
@@ -92,6 +100,11 @@ def change_password(db: Session, user: User, old_password: str, new_password: st
     db.commit()
 
 
-def build_menus(user: User) -> list[MenuItem]:
-    perms = user.role.permissions if user.role else []
+def build_menus(db: Session, user: User) -> list[MenuItem]:
+    """按角色权限过滤菜单树（RBAC，PRD §8）。
+
+    说明：用户-角色为逻辑外键（无 ORM relationship），此处显式查询角色权限集合；
+    超管角色 permissions=["*"] 时 _filter_menu 会放行全部菜单。"""
+    role = db.get(Role, user.role_id) if user.role_id else None
+    perms = role.permissions if role else []
     return _filter_menu(MENU_TREE, perms or [])

@@ -9,7 +9,7 @@ from core.limiter import refresh_blacklist_check
 from core.response import BizError, ErrCode
 from core.security import decode_token
 from db.session import get_db  # noqa: F401
-from models.org import User
+from models.org import Role, User
 
 
 def _authenticate(request: Request, db: Session) -> tuple[User, dict]:
@@ -31,11 +31,15 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
 
 
 def require_perm(code: str) -> Callable:
-    """权限依赖工厂：校验当前用户角色是否含指定权限编码。"""
+    """权限依赖工厂：校验当前用户角色是否含指定权限编码。
+
+    说明：用户-角色为逻辑外键，需显式查询 roles 表获取 permissions JSON。"""
 
     def dep(request: Request, db: Session = Depends(get_db)) -> User:
         user, _ = _authenticate(request, db)
-        perms = user.role.permissions if user.role else []
+        # 显式查询角色权限集合（无 ORM relationship）
+        role = db.get(Role, user.role_id) if user.role_id else None
+        perms = role.permissions if role else []
         if not match_permission(code, perms or []):
             raise BizError(ErrCode.FORBIDDEN, "无操作权限", http_status=403)
         return user

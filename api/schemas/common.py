@@ -53,6 +53,8 @@ class UserBrief(BaseModel):
     role_id: int | None = None
     avatar: str | None = None
     last_login_at: datetime | None = None
+    # 角色权限编码集合（RBAC 按钮级权限，BR-1.2；登录与 /me 时附带）
+    permissions: list[str] = []
 
 
 class LoginOut(BaseModel):

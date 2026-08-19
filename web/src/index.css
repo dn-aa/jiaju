@@ -1,0 +1,31 @@
+/* ============================================================
+   【代码段功能】前台全局样式：Tailwind 指令 + 墨金基础样式
+   ============================================================ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 基础排版：正文无衬线、标题衬线（UI/UX §2.2） */
+body {
+  font-family: 'Montserrat', 'Noto Sans SC', sans-serif;
+  color: #1C1917;
+  background: #FAFAF9;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+}
+
+/* 金色焦点环（可达性：非蓝色焦点，UI/UX §2.6） */
+input, button, a, select, textarea {
+  outline: none;
+}
+input:focus-visible, button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visible {
+  box-shadow: 0 0 0 3px rgba(176, 137, 79, 0.15);
+}
+
+/* 图片自适应 + 懒加载过渡（FR-7.4） */
+img { max-width: 100%; }
+.lazy-img { opacity: 0; transition: opacity .3s; }
+.lazy-img.loaded { opacity: 1; }
