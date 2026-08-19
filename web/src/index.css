@@ -29,3 +29,22 @@ input:focus-visible, button:focus-visible, a:focus-visible, select:focus-visible
 img { max-width: 100%; }
 .lazy-img { opacity: 0; transition: opacity .3s; }
 .lazy-img.loaded { opacity: 1; }
+
+/* ===== 富文本内容基础样式（后台编辑 HTML，墨金基调） ===== */
+.rich-text h1, .rich-text h2, .rich-text h3, .rich-text h4 {
+  color: #1C1917;
+  margin: 1.2em 0 .6em;
+  line-height: 1.4;
+}
+.rich-text h2 { font-size: 1.5em; }
+.rich-text h3 { font-size: 1.25em; }
+.rich-text p { margin: .6em 0; }
+.rich-text ul, .rich-text ol { padding-left: 1.4em; margin: .6em 0; }
+.rich-text img { border-radius: 10px; margin: .8em 0; }
+.rich-text a { color: #97763F; text-decoration: underline; }
+.rich-text blockquote {
+  border-left: 3px solid #B0894F; margin: 1em 0; padding: .4em 1em;
+  background: #F5F3EF; border-radius: 0 8px 8px 0; color: #44403C;
+}
+.rich-text table { border-collapse: collapse; margin: 1em 0; width: 100%; }
+.rich-text td, .rich-text th { border: 1px solid #E7E5E4; padding: 8px 10px; }

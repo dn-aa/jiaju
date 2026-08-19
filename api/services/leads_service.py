@@ -65,7 +65,9 @@ def list_leads(db: Session, lead_type: str, *, status: str | None,
     if status:
         q = q.filter(model.status == status)
     if keyword:
-        q = q.filter((model.name.like(f"%{keyword}%")) | (model.phone.like(f"%{keyword}%")))
+        # 联系方式字段：留言表为 contact，其余为 phone（与数据库文档 v2.3 一致）
+        contact_field = getattr(model, "phone", None) or getattr(model, "contact")
+        q = q.filter((model.name.like(f"%{keyword}%")) | (contact_field.like(f"%{keyword}%")))
     total = q.count()
     items = q.order_by(model.created_date.desc()).offset((page - 1) * page_size).limit(page_size).all()
     return items, total

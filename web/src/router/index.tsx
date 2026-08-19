@@ -1,17 +1,44 @@
 // ============================================================
-// 【代码段功能】前台路由骨架（阶段 5 实现全部 10 页）
-//   阶段 1：仅首页占位展示墨金风格；其余页面路由已预留
+// 【代码段功能】前台路由（阶段 5：10 页全量注册，PRD §5 信息架构）
+//   首页 / 产品中心(列表+详情) / 新案例(列表+详情) / 新闻(列表+详情)
+//   加入我们(列表+详情+投递) / 关于我们 / 联系我们 / 在线预约 / 在线留言
 // ============================================================
 import { createBrowserRouter } from 'react-router-dom';
+import Layout from '../components/Layout';
 import Home from '../pages/Home';
+import Products from '../pages/Products';
+import ProductDetail from '../pages/ProductDetail';
+import Cases from '../pages/Cases';
+import CaseDetail from '../pages/CaseDetail';
+import News from '../pages/News';
+import NewsDetail from '../pages/NewsDetail';
+import Jobs from '../pages/Jobs';
+import JobDetail from '../pages/JobDetail';
+import About from '../pages/About';
+import Contact from '../pages/Contact';
+import Appointment from '../pages/Appointment';
+import Message from '../pages/Message';
 
-// 页面路由表（与 PRD §5 信息架构一致；阶段 5 逐个实现）
 export const router = createBrowserRouter([
-  { path: '/', element: <Home /> },
-  // 预留（阶段 5 实现）：
-  // /products /products/:id 产品中心
-  // /cases /cases/:id       新案例展示
-  // /news /news/:id         新闻
-  // /recruit /jobs/:id      招聘/职位详情
-  // /about /about/history /about/brand /contact 关于我们/联系我们
+  {
+    // 全局布局（顶栏+页脚）包裹所有页面
+    element: <Layout />,
+    children: [
+      { path: '/', element: <Home /> },
+      { path: '/products', element: <Products /> },
+      { path: '/products/:id', element: <ProductDetail /> },
+      { path: '/cases', element: <Cases /> },
+      { path: '/cases/:id', element: <CaseDetail /> },
+      { path: '/news', element: <News /> },
+      { path: '/news/:id', element: <NewsDetail /> },
+      { path: '/jobs', element: <Jobs /> },
+      { path: '/jobs/:id', element: <JobDetail /> },
+      { path: '/about', element: <About /> },
+      { path: '/contact', element: <Contact /> },
+      { path: '/appointment', element: <Appointment /> },
+      { path: '/message', element: <Message /> },
+      // 兜底：未匹配回首页
+      { path: '*', element: <Home /> },
+    ],
+  },
 ]);

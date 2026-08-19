@@ -17,7 +17,8 @@ def get_redis() -> redis.Redis:
     global _pool
     if _pool is None:
         try:
-            _pool = redis.Redis.from_url(settings.redis_url, decode_responses=True)
+            # protocol=2（RESP2）：兼容便携版 Redis（不支持 HELLO 3 握手）
+            _pool = redis.Redis.from_url(settings.redis_url, decode_responses=True, protocol=2)
             _pool.ping()
         except redis.RedisError as e:
             logger.warning("Redis 不可用（降级为进程内计数）：%s", e)
