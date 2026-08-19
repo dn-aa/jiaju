@@ -144,6 +144,7 @@ def create_item(db: Session, cfg: dict, payload: dict, user: User, request: Requ
     db.flush()
     _sync_relations(db, cfg, obj, related)
     write_log(db, user, request, f"{cfg['perm']}:create", _obj_name(cfg), obj.id, f"创建 {_label(cfg, obj)}")
+    invalidate_home_cache()   # 内容变更 → 首页缓存失效（前台 60s 内可见）
     db.commit()
     db.refresh(obj)
     return obj
@@ -161,6 +162,7 @@ def update_item(db: Session, cfg: dict, item_id: int, payload: dict, user: User,
     obj.updated_at = user.id
     _sync_relations(db, cfg, obj, related)
     write_log(db, user, request, f"{cfg['perm']}:update", _obj_name(cfg), obj.id, f"更新 {_label(cfg, obj)}")
+    invalidate_home_cache()
     db.commit()
     db.refresh(obj)
     return obj
@@ -173,6 +175,17 @@ def _pop_related(data: dict) -> dict:
         if f in data:
             related[f] = data.pop(f)
     return related
+
+
+def invalidate_home_cache() -> None:
+    """首页聚合缓存失效（cms 内容变更后调用，保证前台 60s 内可见更新）。"""
+    try:
+        from core.limiter import get_redis
+        r = get_redis()
+        if r is not None:
+            r.delete("cache:home")
+    except Exception:
+        pass
 
 
 # ---------- 删除（物理删除；产品系列有关联产品禁删） ----------
@@ -190,6 +203,7 @@ def delete_item(db: Session, cfg: dict, item_id: int, user: User, request: Reque
     label = _label(cfg, obj)
     db.delete(obj)
     write_log(db, user, request, f"{cfg['perm']}:delete", _obj_name(cfg), item_id, f"删除 {label}")
+    invalidate_home_cache()
     db.commit()
 
 
@@ -218,6 +232,7 @@ def set_status(db: Session, cfg: dict, item_id: int, status: str, user: User, re
     obj.updated_at = user.id
     write_log(db, user, request, f"{cfg['perm']}:status_change", _obj_name(cfg), item_id,
               f"{_label(cfg, obj)} 状态→{result}")
+    invalidate_home_cache()
     db.commit()
     return result
 
@@ -232,6 +247,7 @@ def set_sorts(db: Session, cfg: dict, items: list[dict], user: User, request: Re
             obj.sort = int(it["sort"])
             obj.updated_at = user.id
     write_log(db, user, request, f"{cfg['perm']}:sort", _obj_name(cfg), None, "批量排序")
+    invalidate_home_cache()
     db.commit()
 
 

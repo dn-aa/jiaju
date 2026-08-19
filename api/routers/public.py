@@ -23,6 +23,7 @@
 """
 from datetime import datetime
 import base64
+import json
 import uuid
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
@@ -30,7 +31,7 @@ from sqlalchemy.orm import Session
 
 from core.captcha import gen_captcha_text, render_captcha
 from core.config import settings
-from core.limiter import captcha_check, captcha_store, client_ip, rate_limit
+from core.limiter import captcha_check, captcha_store, client_ip, get_redis, rate_limit
 from core.response import BizError, ErrCode, ok
 from core.storage import save_upload
 from core.xss import sanitize_html
@@ -79,8 +80,22 @@ def verify_captcha(captcha_id: str, code: str) -> None:
 # ============================================================
 # 【代码段功能】首页聚合（BR-1.x 各区块数据源）
 # ============================================================
+# 首页聚合缓存 TTL（技术文档 v1.4 §2.2 热点缓存；内容变更由 cms 写操作失效）
+HOME_CACHE_TTL = 60
+
+
+def _home_cache_key() -> str:
+    return "cache:home"
+
+
 @router.get("/home")
 def home(db: Session = Depends(get_db)):
+    r = get_redis()
+    # 命中缓存直接返回（首页聚合 8 段查询，热点数据高频访问）
+    if r is not None:
+        cached = r.get(_home_cache_key())
+        if cached:
+            return ok(json.loads(cached))
     now = datetime.now()
     banners = [{"id": b.id, "image": b.image, "title": b.title, "subtitle": b.subtitle, "link": b.link}
                for b in db.query(Banner).filter(Banner.is_activate == 1).order_by(Banner.sort.asc()).all()
@@ -108,11 +123,18 @@ def home(db: Session = Depends(get_db)):
                                                  (Announcement.online_at.is_(None)) | (Announcement.online_at <= now),
                                                  (Announcement.offline_at.is_(None)) | (Announcement.offline_at >= now)) \
         .order_by(Announcement.sort.asc()).first()
-    return ok({
+    data = {
         "banners": banners, "categories": categories, "hot_products": hot_products,
         "new_cases": new_cases, "news": news, "steps": steps, "reviews": reviews,
         "announcement": announcement.content if announcement else None,
-    })
+    }
+    # 写入 Redis 热点缓存（TTL 60s；datetime 字段转 ISO 字符串）
+    if r is not None:
+        try:
+            r.setex(_home_cache_key(), HOME_CACHE_TTL, json.dumps(data, ensure_ascii=False, default=str))
+        except Exception:
+            pass
+    return ok(data)
 
 
 # ============================================================
@@ -212,13 +234,16 @@ def article_detail(item_id: int, db: Session = Depends(get_db)):
     a = db.get(Article, item_id)
     if a is None or a.is_activate != 1 or a.is_published != 1:
         raise BizError(ErrCode.NOT_FOUND, "文章不存在")
-    # 上一篇（发布时间更早的最近一篇）与下一篇（发布时间更晚的最近一篇）
-    prev = db.query(Article).filter(Article.is_activate == 1, Article.is_published == 1,
-                                    Article.publish_at < a.publish_at) \
-        .order_by(Article.publish_at.desc()).first()
-    nxt = db.query(Article).filter(Article.is_activate == 1, Article.is_published == 1,
-                                   Article.publish_at > a.publish_at) \
-        .order_by(Article.publish_at.asc()).first()
+    # 上一篇（发布时间更早的最近一篇）与下一篇（发布时间更晚的最近一篇）；
+    # 文章无发布时间（publish_at 为 NULL）时不查询相邻（避免 NULL 比较错误）
+    prev = nxt = None
+    if a.publish_at:
+        prev = db.query(Article).filter(Article.is_activate == 1, Article.is_published == 1,
+                                        Article.publish_at.isnot(None), Article.publish_at < a.publish_at) \
+            .order_by(Article.publish_at.desc()).first()
+        nxt = db.query(Article).filter(Article.is_activate == 1, Article.is_published == 1,
+                                       Article.publish_at.isnot(None), Article.publish_at > a.publish_at) \
+            .order_by(Article.publish_at.asc()).first()
     return ok({"id": a.id, "title": a.title, "category": a.category, "summary": a.summary,
                "body": a.body, "source": a.source, "author": a.author, "publish_at": a.publish_at,
                "prev": {"id": prev.id, "title": prev.title} if prev else None,
