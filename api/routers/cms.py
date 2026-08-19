@@ -63,12 +63,15 @@ def build_resource_routes(resource: str) -> None:
     @router.get(f"/{resource}/{{item_id}}")
     def get_item(item_id: int, db: Session = Depends(get_db),
                  user=Depends(require_perm(f"{perm}:view")),
-                 _model=model, _schema_out=schema_out):
-        """资源详情（编辑表单回填数据源）。"""
+                 _model=model, _schema_out=schema_out, _cfg=cfg):
+        """资源详情（编辑表单回填数据源，含案例-产品关联 id）。"""
         obj = db.get(_model, item_id)
         if obj is None:
             raise BizError(ErrCode.NOT_FOUND, "记录不存在")
-        return ok(_schema_out.model_validate(obj).model_dump())
+        out = _schema_out.model_validate(obj).model_dump()
+        # 附加关联 id（产品→关联案例；案例→关联产品），供编辑 Modal 回填
+        out.update(cms_service.related_ids(db, _cfg, obj))
+        return ok(out)
 
     @router.post(f"/{resource}")
     def create_item(

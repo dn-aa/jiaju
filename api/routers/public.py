@@ -36,7 +36,7 @@ from core.storage import save_upload
 from core.xss import sanitize_html
 from db.session import get_db
 from models.content import (
-    Announcement, Article, Banner, Case, Category, Job, Page, Product, Review, ServiceStep, SiteConfig,
+    Announcement, Article, Banner, Case, CaseProduct, Category, Job, Page, Product, Review, ServiceStep, SiteConfig,
 )
 from models.leads import Appointment, Application, Message
 from schemas.public import AppointmentIn, ApplicationIn, MessageIn
@@ -146,14 +146,19 @@ def products(category_id: int | None = None, keyword: str | None = None,
 
 @router.get("/products/{item_id}")
 def product_detail(item_id: int, db: Session = Depends(get_db)):
-    """产品详情：含规格参数/图集/富文本描述。"""
+    """产品详情：含规格参数/图集/富文本描述 + 关联案例（case_products，BR-2/FR-2.4）。"""
     p = db.get(Product, item_id)
     if p is None or p.is_activate != 1 or p.status != "on":
         raise BizError(ErrCode.NOT_FOUND, "产品不存在或已下架")
+    # 关联案例（启用中），前台"案例应用"区块展示
+    related = db.query(Case).join(CaseProduct, CaseProduct.case_id == Case.id) \
+        .filter(CaseProduct.product_id == p.id, Case.is_activate == 1) \
+        .order_by(Case.sort.asc()).all()
     return ok({"id": p.id, "name": p.name, "series": p.series, "product_code": p.product_code,
                "description": p.description, "spec_params": p.spec_params or {},
                "cover_image": p.cover_image, "gallery": p.gallery or [],
-               "category_id": p.category_id, "is_top": p.is_top})
+               "category_id": p.category_id, "is_top": p.is_top,
+               "related_cases": [{"id": c.id, "title": c.title, "type": c.type, "cover": c.cover} for c in related]})
 
 
 @router.get("/cases")
@@ -172,13 +177,19 @@ def cases(type: str | None = None, page: int = 1, page_size: int = 6, db: Sessio
 
 @router.get("/cases/{item_id}")
 def case_detail(item_id: int, db: Session = Depends(get_db)):
-    """案例详情：图集/项目背景/设计说明。"""
+    """案例详情：图集/项目背景/设计说明 + 关联产品（case_products，BR-3/FR-3.4）。"""
     c = db.get(Case, item_id)
     if c is None or c.is_activate != 1:
         raise BizError(ErrCode.NOT_FOUND, "案例不存在")
+    # 关联产品（上架且启用），前台"本案应用产品"区块展示
+    related = db.query(Product).join(CaseProduct, CaseProduct.product_id == Product.id) \
+        .filter(CaseProduct.case_id == c.id, Product.is_activate == 1, Product.status == "on") \
+        .order_by(Product.sort.asc()).all()
     return ok({"id": c.id, "title": c.title, "type": c.type, "style": c.style, "space": c.space,
                "area": c.area, "cover": c.cover, "gallery": c.gallery or [],
-               "background": c.background, "description": c.description})
+               "background": c.background, "description": c.description,
+               "related_products": [{"id": p.id, "name": p.name, "cover_image": p.cover_image,
+                                     "series": p.series, "product_code": p.product_code} for p in related]})
 
 
 @router.get("/articles")
@@ -197,12 +208,21 @@ def articles(category: str | None = None, page: int = 1, page_size: int = 6, db:
 
 @router.get("/articles/{item_id}")
 def article_detail(item_id: int, db: Session = Depends(get_db)):
-    """新闻详情：富文本正文。"""
+    """新闻详情：富文本正文 + 上一篇/下一篇（按发布时间相邻，仅已发布，FR-4.3）。"""
     a = db.get(Article, item_id)
     if a is None or a.is_activate != 1 or a.is_published != 1:
         raise BizError(ErrCode.NOT_FOUND, "文章不存在")
+    # 上一篇（发布时间更早的最近一篇）与下一篇（发布时间更晚的最近一篇）
+    prev = db.query(Article).filter(Article.is_activate == 1, Article.is_published == 1,
+                                    Article.publish_at < a.publish_at) \
+        .order_by(Article.publish_at.desc()).first()
+    nxt = db.query(Article).filter(Article.is_activate == 1, Article.is_published == 1,
+                                   Article.publish_at > a.publish_at) \
+        .order_by(Article.publish_at.asc()).first()
     return ok({"id": a.id, "title": a.title, "category": a.category, "summary": a.summary,
-               "body": a.body, "source": a.source, "author": a.author, "publish_at": a.publish_at})
+               "body": a.body, "source": a.source, "author": a.author, "publish_at": a.publish_at,
+               "prev": {"id": prev.id, "title": prev.title} if prev else None,
+               "next": {"id": nxt.id, "title": nxt.title} if nxt else None})
 
 
 @router.get("/jobs")

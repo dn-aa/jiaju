@@ -53,18 +53,21 @@ function ProductTab() {
   const [page, setPage] = useState(1);
   const [keyword, setKeyword] = useState('');
   const [cats, setCats] = useState<Category[]>([]);
+  const [caseOptions, setCaseOptions] = useState<{ value: number; label: string }[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form] = Form.useForm();
 
-  // 加载产品列表与空间分类（供下拉与名称展示）
+  // 加载产品列表 + 空间分类 + 案例（供关联案例多选下拉，BR-2 关联产品）
   const load = async () => {
-    const [p, c] = await Promise.all([
+    const [p, c, cs] = await Promise.all([
       productApi.list({ page, page_size: 10, keyword: keyword || undefined }),
       categoryApi.list({ page: 1, page_size: 50 }),
+      cmsApi<{ id: number; title: string }>('cases').list({ page: 1, page_size: 100 }),
     ]);
     setList(p.list); setTotal(p.pagination.total);
     setCats(c.list);
+    setCaseOptions(cs.list.map((x) => ({ value: x.id, label: x.title })));
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, keyword]);
 
@@ -76,6 +79,7 @@ function ProductTab() {
       form.setFieldsValue({
         ...detail,
         spec_params: Object.entries(detail.spec_params || {}).map(([k, v]) => ({ k, v })),
+        related_case_ids: (detail as unknown as { related_case_ids?: number[] }).related_case_ids || [],
       });
     } else {
       setEditing(null);
@@ -92,6 +96,7 @@ function ProductTab() {
       ...v,
       spec_params: Object.fromEntries((v.spec_params || []).map((r: { k: string; v: string }) => [r.k, r.v])),
       is_top: v.is_top ? 1 : 0,
+      related_case_ids: v.related_case_ids || [],   // 关联案例（case_products 同步维护）
     };
     if (editing) await productApi.update(editing.id, payload);
     else await productApi.create(payload);
@@ -188,6 +193,11 @@ function ProductTab() {
               </Form.List>
             </Form.Item>
           </div>
+          {/* 关联案例（BR-2 关联产品；前台产品详情"案例应用"区块展示） */}
+          <Form.Item name="related_case_ids" label="关联案例（可多选）">
+            <Select mode="multiple" allowClear placeholder="选择该产品应用到的案例"
+              options={caseOptions} optionFilterProp="label" />
+          </Form.Item>
           <Form.Item label="产品描述（富文本）" name="description">
             <RichText height={200} />
           </Form.Item>

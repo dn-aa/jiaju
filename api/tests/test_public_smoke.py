@@ -52,7 +52,32 @@ def seed() -> int:
     return job_id
 
 
+
+def clear_rate_limits() -> None:
+    """清理 Redis 限流计数（避免密集测试触发登录/提交限流）。"""
+    import redis as _redis
+    try:
+        rd = _redis.Redis(host="127.0.0.1", port=6379, db=0, protocol=2)
+        for k in rd.keys("rl:*"):
+            rd.delete(k)
+    except Exception:
+        pass
+
+
+def _clear_login_limit() -> None:
+    """登录前清 rl:login 限流（测试环境豁免，限流功能由专项验证）。"""
+    import redis as _redis
+    try:
+        rd = _redis.Redis(host="127.0.0.1", port=6379, db=0, protocol=2)
+        for k in rd.keys("rl:login:*"):
+            rd.delete(k)
+    except Exception:
+        pass
+
+
+
 def main() -> None:
+    clear_rate_limits()
     job_id = seed()
 
     print("\n===== 1) 首页聚合 =====")

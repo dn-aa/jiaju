@@ -56,6 +56,8 @@ class ProductIn(BaseModel):
     status: Literal["draft", "off", "on"] = "draft"
     is_top: int = 0
     sort: int = 0
+    # 关联案例（case_products 多对多；编辑回填/前台展示用，空=None 不修改）
+    related_case_ids: Optional[list[int]] = Field(None, description="关联案例 id 列表")
 
 
 # ---------- 案例（BR-3.1） ----------
@@ -72,6 +74,8 @@ class CaseIn(BaseModel):
     background: Optional[str] = Field(None, description="项目背景（富文本）")
     description: Optional[str] = Field(None, description="设计说明（富文本）")
     sort: int = 0
+    # 关联产品（case_products 多对多；编辑回填/前台展示用，空=None 不修改）
+    related_product_ids: Optional[list[int]] = Field(None, description="关联产品 id 列表")
 
 
 # ---------- 风格/空间字典（BR-3.2） ----------

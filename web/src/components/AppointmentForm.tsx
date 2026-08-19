@@ -5,12 +5,14 @@
 import { useEffect, useState } from 'react';
 import { colors, fonts } from '../theme/design-tokens';
 import CaptchaInput from './CaptchaInput';
+import PrivacyAgree from './PrivacyAgree';
 import { getSiteConfig, submitAppointment } from '../services/public';
 
 export default function AppointmentForm() {
   const [slots, setSlots] = useState<string[]>([]);
   const [form, setForm] = useState<Record<string, string>>({});
   const [captcha, setCaptcha] = useState({ captcha_id: '', captcha_code: '' });
+  const [agreed, setAgreed] = useState(false);   // 隐私授权（PIPL 合规，UIUX §3.5）
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -23,6 +25,7 @@ export default function AppointmentForm() {
 
   const submit = async () => {
     if (!form.name || !form.phone || !form.appointment_date) { alert('请填写姓名、手机号与预约日期'); return; }
+    if (!agreed) { alert('请先勾选隐私授权'); return; }
     if (!captcha.captcha_code) { alert('请输入验证码'); return; }
     setSubmitting(true);
     try {
@@ -60,6 +63,7 @@ export default function AppointmentForm() {
       </div>
       <F label="预约备注"><textarea style={{ ...inp, width: '100%', minHeight: 60, resize: 'vertical' }} value={form.note || ''} onChange={(e) => set('note', e.target.value)} placeholder="想了解的品类/需求（选填）" /></F>
       <F label="验证码 *"><CaptchaInput value={captcha} onChange={setCaptcha} /></F>
+      <PrivacyAgree agreed={agreed} onChange={setAgreed} />
       <button onClick={submit} disabled={submitting} style={{
         width: '100%', marginTop: 6, padding: 13, borderRadius: 999, border: 'none',
         background: colors.gold, color: '#fff', fontSize: 15, cursor: 'pointer', letterSpacing: '.1em',

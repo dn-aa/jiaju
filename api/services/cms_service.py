@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from core.response import BizError, ErrCode
 from core.xss import sanitize_html
 from models.content import (
-    Announcement, Article, Banner, Case, CaseStyle, Category,
+    Announcement, Article, Banner, Case, CaseProduct, CaseStyle, Category,
     Job, Page, Product, Review, ServiceStep,
 )
 from models.org import OperationLog, User
@@ -105,13 +105,44 @@ def _apply_xss(cfg: dict, data: dict) -> dict:
     return cleaned
 
 
+def _sync_relations(db: Session, cfg: dict, obj, data: dict) -> None:
+    """【代码段功能】同步案例-产品关联（case_products 复合主键表，BR-2/BR-3 关联产品）。
+    产品编辑传入 related_case_ids、案例编辑传入 related_product_ids 时重建关联；
+    未传该字段（None）则保持现状。"""
+    if cfg["model"] is Product and "related_case_ids" in data and data["related_case_ids"] is not None:
+        db.query(CaseProduct).filter(CaseProduct.product_id == obj.id).delete()
+        for cid in dict.fromkeys(data["related_case_ids"]):   # 去重
+            db.add(CaseProduct(case_id=int(cid), product_id=obj.id))
+        data.pop("related_case_ids", None)
+    elif cfg["model"] is Case and "related_product_ids" in data and data["related_product_ids"] is not None:
+        db.query(CaseProduct).filter(CaseProduct.case_id == obj.id).delete()
+        for pid in dict.fromkeys(data["related_product_ids"]):
+            db.add(CaseProduct(case_id=obj.id, product_id=int(pid)))
+        data.pop("related_product_ids", None)
+
+
+def related_ids(db: Session, cfg: dict, obj) -> dict:
+    """【代码段功能】读取关联 id 集合（编辑回填数据源）。
+    产品→related_case_ids；案例→related_product_ids；其余资源为空 dict。"""
+    if cfg["model"] is Product:
+        return {"related_case_ids": [r.case_id for r in
+                db.query(CaseProduct).filter(CaseProduct.product_id == obj.id).all()]}
+    if cfg["model"] is Case:
+        return {"related_product_ids": [r.product_id for r in
+                db.query(CaseProduct).filter(CaseProduct.case_id == obj.id).all()]}
+    return {}
+
+
 def create_item(db: Session, cfg: dict, payload: dict, user: User, request: Request):
-    """【代码段功能】创建资源：XSS 清洗 → 写入 → 记录日志。"""
+    """【代码段功能】创建资源：XSS 清洗 → 写入 → 关联维护 → 记录日志。"""
     data = _apply_xss(cfg, payload)
+    # 关联字段不写入模型（case_products 单独维护），先剥离备用
+    related = _pop_related(data)
     # 通用字段：创建人 = 当前操作人
     obj = cfg["model"](**data, created_at=user.id, updated_at=user.id)
     db.add(obj)
     db.flush()
+    _sync_relations(db, cfg, obj, related)
     write_log(db, user, request, f"{cfg['perm']}:create", _obj_name(cfg), obj.id, f"创建 {_label(cfg, obj)}")
     db.commit()
     db.refresh(obj)
@@ -119,18 +150,29 @@ def create_item(db: Session, cfg: dict, payload: dict, user: User, request: Requ
 
 
 def update_item(db: Session, cfg: dict, item_id: int, payload: dict, user: User, request: Request):
-    """【代码段功能】更新资源：仅更新传入字段，记录日志。"""
+    """【代码段功能】更新资源：仅更新传入字段，关联维护，记录日志。"""
     obj = db.get(cfg["model"], item_id)
     if obj is None:
         raise BizError(ErrCode.NOT_FOUND, "记录不存在")
     data = _apply_xss(cfg, payload)
+    related = _pop_related(data)
     for k, v in data.items():
         setattr(obj, k, v)
     obj.updated_at = user.id
+    _sync_relations(db, cfg, obj, related)
     write_log(db, user, request, f"{cfg['perm']}:update", _obj_name(cfg), obj.id, f"更新 {_label(cfg, obj)}")
     db.commit()
     db.refresh(obj)
     return obj
+
+
+def _pop_related(data: dict) -> dict:
+    """从业务字段中剥离关联 id 字段（related_case_ids/related_product_ids）。"""
+    related = {}
+    for f in ("related_case_ids", "related_product_ids"):
+        if f in data:
+            related[f] = data.pop(f)
+    return related
 
 
 # ---------- 删除（物理删除；产品系列有关联产品禁删） ----------

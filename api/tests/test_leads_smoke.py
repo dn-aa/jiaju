@@ -22,6 +22,7 @@ def check(name: str, cond: bool, extra: str = ""):
 
 
 def login(u, p):
+    _clear_login_limit()
     r = httpx.post(f"{BASE}/api/auth/login", json={"username": u, "password": p})
     return r.json()["data"]["access_token"]
 
@@ -52,7 +53,32 @@ def seed_data() -> None:
     print("  [seed] 已插入测试线索：预约x3 / 留言x2 / 简历x2")
 
 
+
+def clear_rate_limits() -> None:
+    """清理 Redis 限流计数（避免密集测试触发登录/提交限流）。"""
+    import redis as _redis
+    try:
+        rd = _redis.Redis(host="127.0.0.1", port=6379, db=0, protocol=2)
+        for k in rd.keys("rl:*"):
+            rd.delete(k)
+    except Exception:
+        pass
+
+
+def _clear_login_limit() -> None:
+    """登录前清 rl:login 限流（测试环境豁免，限流功能由专项验证）。"""
+    import redis as _redis
+    try:
+        rd = _redis.Redis(host="127.0.0.1", port=6379, db=0, protocol=2)
+        for k in rd.keys("rl:login:*"):
+            rd.delete(k)
+    except Exception:
+        pass
+
+
+
 def main() -> None:
+    clear_rate_limits()
     seed_data()
     admin = login("admin", "admin123")
     cs = login("cs01", "admin123")

@@ -44,12 +44,38 @@ def check(name: str, cond: bool, extra: str = ""):
 
 
 def login(username: str, password: str) -> tuple[httpx.Response, dict]:
+    _clear_login_limit()
     """调用登录接口，返回 (响应, JSON)。"""
     r = httpx.post(f"{BASE}/api/auth/login", json={"username": username, "password": password})
     return r, r.json()
 
 
+
+def clear_rate_limits() -> None:
+    """清理 Redis 限流计数（避免密集测试触发登录/提交限流）。"""
+    import redis as _redis
+    try:
+        rd = _redis.Redis(host="127.0.0.1", port=6379, db=0, protocol=2)
+        for k in rd.keys("rl:*"):
+            rd.delete(k)
+    except Exception:
+        pass
+
+
+def _clear_login_limit() -> None:
+    """登录前清 rl:login 限流（测试环境豁免，限流功能由专项验证）。"""
+    import redis as _redis
+    try:
+        rd = _redis.Redis(host="127.0.0.1", port=6379, db=0, protocol=2)
+        for k in rd.keys("rl:login:*"):
+            rd.delete(k)
+    except Exception:
+        pass
+
+
+
 def main() -> None:
+    clear_rate_limits()
     print("\n========== 1) 健康检查 与 图形验证码（FR-7.2 前置能力） ==========")
     r = httpx.get(f"{BASE}/api/public/health")
     check("健康检查 code=0", r.json().get("code") == 0, f"data={r.json().get('data')}")
@@ -94,21 +120,32 @@ def main() -> None:
     check("伪造 Token → 401 拦截", r.status_code == 401, f"http={r.status_code}")
 
     print("\n========== 5) 修改密码闭环（BR-1.4） ==========")
-    # 用超管账号：admin123 → new123 → 回滚 admin123
-    r = httpx.post(f"{BASE}/api/auth/change-password",
-                   json={"old_password": "admin123", "new_password": "new123456"},
-                   headers=headers_super)
-    check("改密成功（admin123→new123456）", r.json().get("code") == 0)
+    # 用超管账号：admin123 → new123456 → 回滚 admin123（finally 兜底，避免残留新密码）
+    try:
+        r = httpx.post(f"{BASE}/api/auth/change-password",
+                       json={"old_password": "admin123", "new_password": "new123456"},
+                       headers=headers_super)
+        check("改密成功（admin123→new123456）", r.json().get("code") == 0)
 
-    r, body = login("admin", "new123456")
-    check("新密码可登录", body.get("code") == 0)
-    new_tok = body["data"]["access_token"]
-    # 回滚密码
-    httpx.post(f"{BASE}/api/auth/change-password",
-               json={"old_password": "new123456", "new_password": "admin123"},
-               headers={"Authorization": f"Bearer {new_tok}"})
-    r, body = login("admin", "admin123")
-    check("密码已回滚 admin123", body.get("code") == 0)
+        r, body = login("admin", "new123456")
+        check("新密码可登录", body.get("code") == 0)
+        new_tok = body.get("data", {}).get("access_token") if body.get("code") == 0 else None
+        if new_tok:
+            httpx.post(f"{BASE}/api/auth/change-password",
+                       json={"old_password": "new123456", "new_password": "admin123"},
+                       headers={"Authorization": f"Bearer {new_tok}"})
+        r, body = login("admin", "admin123")
+        check("密码已回滚 admin123", body.get("code") == 0)
+    finally:
+        # 兜底回滚：无论上述步骤是否失败，确保 admin 恢复为 admin123
+        for pwd in ("new123456", "admin123"):
+            rr = login("admin", pwd)
+            if rr[1].get("code") == 0:
+                tk = rr[1]["data"]["access_token"]
+                httpx.post(f"{BASE}/api/auth/change-password",
+                           json={"old_password": pwd, "new_password": "admin123"},
+                           headers={"Authorization": f"Bearer {tk}"})
+                break
     # 弱密码校验（新密码 ≥6 位）
     r = httpx.post(f"{BASE}/api/auth/change-password",
                    json={"old_password": "admin123", "new_password": "123"},

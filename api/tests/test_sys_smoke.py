@@ -5,6 +5,7 @@
 操作日志查询、权限隔离（非超管 403）。运行：python tests/test_sys_smoke.py
 """
 import sys
+import time
 
 import httpx
 
@@ -20,11 +21,37 @@ def check(name: str, cond: bool, extra: str = ""):
 
 
 def login(u, p):
+    _clear_login_limit()
     r = httpx.post(f"{BASE}/api/auth/login", json={"username": u, "password": p})
     return r.json()
 
 
+
+def clear_rate_limits() -> None:
+    """清理 Redis 限流计数（避免密集测试触发登录/提交限流）。"""
+    import redis as _redis
+    try:
+        rd = _redis.Redis(host="127.0.0.1", port=6379, db=0, protocol=2)
+        for k in rd.keys("rl:*"):
+            rd.delete(k)
+    except Exception:
+        pass
+
+
+def _clear_login_limit() -> None:
+    """登录前清 rl:login 限流（测试环境豁免，限流功能由专项验证）。"""
+    import redis as _redis
+    try:
+        rd = _redis.Redis(host="127.0.0.1", port=6379, db=0, protocol=2)
+        for k in rd.keys("rl:login:*"):
+            rd.delete(k)
+    except Exception:
+        pass
+
+
+
 def main() -> None:
+    clear_rate_limits()
     admin = login("admin", "admin123")["data"]["access_token"]
     ha = {"Authorization": f"Bearer {admin}"}
     cs = login("cs01", "admin123")["data"]["access_token"]
@@ -88,14 +115,15 @@ def main() -> None:
     check("角色列表 >=4", len(roles) >= 4)
     super_role = next((x for x in roles if x["name"] == "超级管理员"), None)
     check("超管角色权限=[*]", super_role and super_role["permissions"] == ["*"])
-    # 创建角色 + 配置权限集合
+    # 创建角色 + 配置权限集合（角色名带时间戳，避免多次运行同名冲突）
+    role_name = f"测试角色{int(time.time())}"
     r = httpx.post(f"{BASE}/api/sys/roles", headers=ha, json={
-        "name": "测试角色", "description": "冒烟测试", "permissions": ["product:view", "product:edit"]})
+        "name": role_name, "permissions": ["product:view", "product:edit"]})
     rid = r.json()["data"]["id"]
     check("创建角色", r.json()["code"] == 0, f"id={rid}")
     # 更新权限集合（权限树勾选保存）
     r = httpx.put(f"{BASE}/api/sys/roles/{rid}", headers=ha, json={
-        "name": "测试角色", "permissions": ["product:view", "case:view", "dashboard:view"]})
+        "name": role_name, "permissions": ["product:view", "case:view", "dashboard:view"]})
     check("更新角色权限集合", r.json()["data"]["permissions"] == ["product:view", "case:view", "dashboard:view"])
 
     print("\n===== 3) 操作日志（BR-10.3） =====")

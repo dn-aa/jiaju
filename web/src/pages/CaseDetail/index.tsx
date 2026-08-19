@@ -1,17 +1,15 @@
 // ============================================================
-// 【代码段功能】案例详情页（FR-1.3.2）
-//   大图 + 图集浏览、基本信息（风格/空间/面积）、项目背景/设计说明（富文本）
+// 【代码段功能】案例详情页（FR-3.4）
+//   大图 + 图集浏览、基本信息（风格/空间/面积）、项目背景/设计说明（富文本）、
+//   关联产品（case_products "本案应用产品"区块）；数据经 React Query 获取
 // ============================================================
-import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { colors, fonts, maxWidth, radius, shadow } from '../../theme/design-tokens';
-import { getCase, type CaseDetail } from '../../services/public';
+import { useCase } from '../../hooks/usePublic';
 
 export default function CaseDetail() {
   const { id } = useParams();
-  const [c, setC] = useState<CaseDetail | null>(null);
-
-  useEffect(() => { getCase(Number(id)).then(setC).catch(() => undefined); }, [id]);
+  const { data: c } = useCase(Number(id));
 
   if (!c) return <div style={{ padding: '120px 0', textAlign: 'center', color: '#a8a29e' }}>加载中...</div>;
 
@@ -56,6 +54,29 @@ export default function CaseDetail() {
           <div>
             <div style={{ fontFamily: fonts.display, fontSize: 24, fontWeight: 600, marginBottom: 12 }}>设计说明</div>
             <div className="rich-text" dangerouslySetInnerHTML={{ __html: c.description }} style={{ lineHeight: 1.9, fontSize: 14.5, color: colors.ink2 }} />
+          </div>
+        )}
+
+        {/* 关联产品（BR-3 关联产品；FR-3.4 "本案应用产品"区块） */}
+        {c.related_products && c.related_products.length > 0 && (
+          <div style={{ marginTop: 40 }}>
+            <div style={{ fontFamily: fonts.display, fontSize: 24, fontWeight: 600, marginBottom: 16 }}>本案应用产品</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 16 }}>
+              {c.related_products.map((p) => (
+                <Link key={p.id} to={`/products/${p.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div style={{ borderRadius: radius.md, overflow: 'hidden', boxShadow: shadow.sm, background: colors.surface }}>
+                    <div style={{ height: 150, background: colors.soft }}>
+                      {p.cover_image ? <img src={p.cover_image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d6d3d1', fontSize: 12 }}>暂无图片</div>}
+                    </div>
+                    <div style={{ padding: 12 }}>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>{p.name}</div>
+                      <div style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>{p.series} · {p.product_code}</div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </div>

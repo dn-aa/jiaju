@@ -21,11 +21,37 @@ def check(name: str, cond: bool, extra: str = ""):
 
 
 def login(u, p):
+    _clear_login_limit()
     r = httpx.post(f"{BASE}/api/auth/login", json={"username": u, "password": p})
     return r.json()["data"]["access_token"]
 
 
+
+def clear_rate_limits() -> None:
+    """清理 Redis 限流计数（避免密集测试触发登录/提交限流）。"""
+    import redis as _redis
+    try:
+        rd = _redis.Redis(host="127.0.0.1", port=6379, db=0, protocol=2)
+        for k in rd.keys("rl:*"):
+            rd.delete(k)
+    except Exception:
+        pass
+
+
+def _clear_login_limit() -> None:
+    """登录前清 rl:login 限流（测试环境豁免，限流功能由专项验证）。"""
+    import redis as _redis
+    try:
+        rd = _redis.Redis(host="127.0.0.1", port=6379, db=0, protocol=2)
+        for k in rd.keys("rl:login:*"):
+            rd.delete(k)
+    except Exception:
+        pass
+
+
+
 def main() -> None:
+    clear_rate_limits()
     admin = login("admin", "admin123")
     ha = {"Authorization": f"Bearer {admin}"}
     cs = login("cs01", "admin123")
@@ -113,9 +139,6 @@ def main() -> None:
     check("客服访问 products → 403", r.status_code == 403, f"http={r.status_code}")
     r = httpx.get(f"{BASE}/api/cms/categories", headers=hc)
     check("客服访问 categories → 403", r.status_code == 403)
-    # 客服可以访问 leads（阶段 3 实现）——此处验证 404 而非 403（未实现资源）
-    r = httpx.get(f"{BASE}/api/leads/appointments", headers=hc)
-    check("客服访问 leads（未实现返回 404）", r.status_code == 404)
 
     print("\n===== 7) 操作日志落库（BR-10.3） =====")
     import urllib.parse

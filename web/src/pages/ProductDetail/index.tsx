@@ -1,26 +1,24 @@
 // ============================================================
-// 【代码段功能】产品详情页（FR-1.2.2）
+// 【代码段功能】产品详情页（FR-2.4）
 //   主图 + 图集（缩略图切换）、名称/系列/编号、规格参数表、
-//   富文本描述（后台编辑的 HTML）、「预约看样」CTA
+//   富文本描述（后台编辑的 HTML）、关联案例（case_products）、「预约看样」CTA
+//   数据经 React Query 缓存获取
 // ============================================================
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { colors, fonts, maxWidth, radius, shadow } from '../../theme/design-tokens';
-import { getProduct, type ProductDetail } from '../../services/public';
+import { useProduct } from '../../hooks/usePublic';
 
 export default function ProductDetail() {
   const { id } = useParams();
-  const [p, setP] = useState<ProductDetail | null>(null);
+  const { data: p } = useProduct(Number(id));
   const [mainImg, setMainImg] = useState<string | null>(null);
-
-  useEffect(() => {
-    getProduct(Number(id)).then((d) => { setP(d); setMainImg(d.cover_image || d.gallery?.[0] || null); })
-      .catch(() => undefined);
-  }, [id]);
 
   if (!p) return <div style={{ padding: '120px 0', textAlign: 'center', color: '#a8a29e' }}>加载中...</div>;
 
   const specs = Object.entries(p.spec_params || {});
+  const gallery = [...(p.gallery || []), p.cover_image].filter(Boolean) as string[];
+  const current = mainImg || p.cover_image || gallery[0] || null;
 
   return (
     <div style={{ fontFamily: fonts.body }}>
@@ -35,15 +33,15 @@ export default function ProductDetail() {
         {/* 左侧：主图 + 图集 */}
         <div>
           <div style={{ height: 400, borderRadius: radius.lg, overflow: 'hidden', background: colors.surface, boxShadow: shadow.md }}>
-            {mainImg ? <img src={mainImg} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {current ? <img src={current} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d6d3d1' }}>暂无图片</div>}
           </div>
           {/* 图集缩略图切换（gallery + 封面） */}
-          {[...(p.gallery || []), p.cover_image].filter(Boolean).length > 1 && (
+          {gallery.length > 1 && (
             <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-              {[...(p.gallery || []), p.cover_image].filter(Boolean).slice(0, 6).map((img, i) => (
-                <div key={i} onClick={() => setMainImg(img as string)} style={{ width: 64, height: 56, borderRadius: 8, overflow: 'hidden', cursor: 'pointer', border: mainImg === img ? `2px solid ${colors.gold}` : `1px solid ${colors.line}` }}>
-                  <img src={img as string} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {gallery.slice(0, 6).map((img, i) => (
+                <div key={i} onClick={() => setMainImg(img)} style={{ width: 64, height: 56, borderRadius: 8, overflow: 'hidden', cursor: 'pointer', border: current === img ? `2px solid ${colors.gold}` : `1px solid ${colors.line}` }}>
+                  <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               ))}
             </div>
@@ -56,7 +54,7 @@ export default function ProductDetail() {
           <h1 style={{ fontFamily: fonts.display, fontSize: 32, margin: '8px 0 6px' }}>{p.name}</h1>
           <div style={{ color: colors.muted, fontSize: 13 }}>产品编号：{p.product_code}</div>
 
-          {/* 规格参数表（FR-1.2.2） */}
+          {/* 规格参数表（FR-2.4） */}
           {specs.length > 0 && (
             <table style={{ width: '100%', marginTop: 24, borderCollapse: 'collapse', fontSize: 14 }}>
               <tbody>
@@ -79,11 +77,33 @@ export default function ProductDetail() {
 
       {/* 富文本描述（后台编辑 HTML，已 XSS 清洗） */}
       {p.description && (
-        <div style={{ maxWidth, margin: '0 auto', padding: '0 24px 80px' }}>
+        <div style={{ maxWidth, margin: '0 auto', padding: '0 24px 40px' }}>
           <div style={{ fontFamily: fonts.display, fontSize: 24, fontWeight: 600, marginBottom: 16 }}>产品介绍</div>
-          {/* 富文本样式基础重置（对齐墨金基调） */}
           <div className="rich-text" dangerouslySetInnerHTML={{ __html: p.description }}
             style={{ lineHeight: 1.9, fontSize: 14.5, color: colors.ink2 }} />
+        </div>
+      )}
+
+      {/* 关联案例（BR-2 关联产品；FR-2.4 "案例应用"区块） */}
+      {p.related_cases && p.related_cases.length > 0 && (
+        <div style={{ maxWidth, margin: '0 auto', padding: '0 24px 80px' }}>
+          <div style={{ fontFamily: fonts.display, fontSize: 24, fontWeight: 600, marginBottom: 16 }}>案例应用</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 16 }}>
+            {p.related_cases.map((c) => (
+              <Link key={c.id} to={`/cases/${c.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{ borderRadius: radius.md, overflow: 'hidden', boxShadow: shadow.sm, background: colors.surface }}>
+                  <div style={{ height: 150, background: colors.soft }}>
+                    {c.cover ? <img src={c.cover} alt={c.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d6d3d1', fontSize: 12 }}>暂无图片</div>}
+                  </div>
+                  <div style={{ padding: 12 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{c.title}</div>
+                    <div style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>{c.type}</div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>

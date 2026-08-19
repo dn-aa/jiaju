@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { colors, fonts, maxWidth, radius, shadow } from '../../theme/design-tokens';
 import CaptchaInput from '../../components/CaptchaInput';
+import PrivacyAgree from '../../components/PrivacyAgree';
 import { getJob, submitApplication, type JobDetail } from '../../services/public';
 
 export default function JobDetailPage() {
@@ -15,6 +16,7 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [form, setForm] = useState<Record<string, string | number>>({ job_id: Number(id) });
   const [captcha, setCaptcha] = useState({ captcha_id: '', captcha_code: '' });
+  const [agreed, setAgreed] = useState(false);   // 隐私授权（PIPL 合规）
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -27,6 +29,7 @@ export default function JobDetailPage() {
   // 投递提交：multipart（字段 + 附件 + 验证码）
   const submit = async () => {
     if (!form.name || !form.phone) { alert('请填写姓名与手机号'); return; }
+    if (!agreed) { alert('请先勾选隐私授权'); return; }
     if (!captcha.captcha_code) { alert('请输入验证码'); return; }
     setSubmitting(true);
     try {
@@ -124,6 +127,7 @@ export default function JobDetailPage() {
               <Field label="验证码 *">
                 <CaptchaInput value={captcha} onChange={setCaptcha} />
               </Field>
+              <PrivacyAgree agreed={agreed} onChange={setAgreed} />
               <button onClick={submit} disabled={submitting} style={{
                 width: '100%', marginTop: 8, padding: 13, borderRadius: 999, border: 'none',
                 background: colors.gold, color: '#fff', fontSize: 15, cursor: 'pointer', letterSpacing: '.1em',

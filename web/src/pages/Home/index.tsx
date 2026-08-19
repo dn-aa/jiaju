@@ -7,23 +7,20 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { colors, fonts, maxWidth, radius, shadow } from '../../theme/design-tokens';
-import { getHome } from '../../services/public';
+import { useHome } from '../../hooks/usePublic';
 
-interface HomeData {
-  banners: { id: number; image: string; title?: string | null; subtitle?: string | null; link?: string | null }[];
-  categories: { id: number; name: string }[];
-  hot_products: { id: number; name: string; cover_image?: string | null; series: string }[];
-  new_cases: { id: number; title: string; type: string; style?: string | null; cover?: string | null }[];
-  news: { id: number; title: string; category: string; summary?: string | null; publish_at?: string | null }[];
-  steps: { step_no: number; title: string; desc?: string | null }[];
-  reviews: { id: number; avatar?: string | null; name: string; city?: string | null; house?: string | null; rating: number; content?: string | null }[];
-}
+// 品牌实力数字（FR-1.x 品牌背书区块；静态配置，来源品牌资料）
+const BRAND_STATS = [
+  { num: '18', label: '年高端定制深耕' },
+  { num: '2600+', label: '全屋定制案例' },
+  { num: '32', label: '项工艺细节标准' },
+  { num: '98%', label: '客户满意度' },
+];
 
 export default function Home() {
-  const [data, setData] = useState<HomeData | null>(null);
   const [bannerIdx, setBannerIdx] = useState(0);
-
-  useEffect(() => { getHome().then(setData).catch(() => undefined); }, []);
+  // 首页数据：React Query 缓存 + 自动请求（对齐技术栈）
+  const { data } = useHome();
 
   // Banner 自动轮播（4.5s 一帧；多图时启用）
   useEffect(() => {
@@ -201,6 +198,26 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* ================= ⑤.5 品牌实力数字（FR-1.x 品牌背书） ================= */}
+      <section style={{ background: colors.ink, marginTop: 56, padding: '56px 24px' }}>
+        <div style={{ maxWidth, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div style={{ color: colors.gold, letterSpacing: '.28em', fontSize: 12 }}>STRENGTH</div>
+            <h2 style={{ fontFamily: fonts.display, fontSize: 30, margin: '8px 0 0', color: '#FAFAF9' }}>品牌实力</h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 24 }}>
+            {BRAND_STATS.map((s) => (
+              <div key={s.label} style={{ textAlign: 'center' }}>
+                <div style={{ fontFamily: fonts.display, fontSize: 52, fontWeight: 600, color: colors.gold, lineHeight: 1.2 }}>
+                  {s.num}
+                </div>
+                <div style={{ color: '#e7d9c0', fontSize: 14, letterSpacing: '.06em', marginTop: 6 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ================= ⑥ 服务流程（FR-1.10，四步） ================= */}
       {steps.length > 0 && (

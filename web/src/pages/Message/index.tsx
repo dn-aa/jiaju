@@ -5,11 +5,13 @@
 import { useState } from 'react';
 import { colors, fonts, radius, shadow } from '../../theme/design-tokens';
 import CaptchaInput from '../../components/CaptchaInput';
+import PrivacyAgree from '../../components/PrivacyAgree';
 import { submitMessage } from '../../services/public';
 
 export default function Message() {
   const [form, setForm] = useState<Record<string, string>>({});
   const [captcha, setCaptcha] = useState({ captcha_id: '', captcha_code: '' });
+  const [agreed, setAgreed] = useState(false);   // 隐私授权（PIPL 合规，UIUX §3.5）
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -17,6 +19,7 @@ export default function Message() {
 
   const submit = async () => {
     if (!form.name || !form.contact || !form.content) { alert('请填写姓名、联系方式与留言内容'); return; }
+    if (!agreed) { alert('请先勾选隐私授权'); return; }
     if (!captcha.captcha_code) { alert('请输入验证码'); return; }
     setSubmitting(true);
     try {
@@ -48,6 +51,7 @@ export default function Message() {
               <F label="联系方式 *"><input style={inp} value={form.contact || ''} onChange={(e) => set('contact', e.target.value)} placeholder="手机号或邮箱" /></F>
               <F label="留言内容 *"><textarea style={{ ...inp, width: '100%', minHeight: 110, resize: 'vertical' }} value={form.content || ''} onChange={(e) => set('content', e.target.value)} placeholder="想咨询的问题" /></F>
               <F label="验证码 *"><CaptchaInput value={captcha} onChange={setCaptcha} /></F>
+              <PrivacyAgree agreed={agreed} onChange={setAgreed} />
               <button onClick={submit} disabled={submitting} style={{
                 width: '100%', marginTop: 6, padding: 13, borderRadius: 999, border: 'none',
                 background: colors.gold, color: '#fff', fontSize: 15, cursor: 'pointer', letterSpacing: '.1em',

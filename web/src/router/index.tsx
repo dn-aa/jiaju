@@ -32,6 +32,7 @@ export const router = createBrowserRouter([
       { path: '/news', element: <News /> },
       { path: '/news/:id', element: <NewsDetail /> },
       { path: '/jobs', element: <Jobs /> },
+      { path: '/recruit', element: <Jobs /> },   // 招聘入口（文档 §4.1 #5，职位列表）
       { path: '/jobs/:id', element: <JobDetail /> },
       { path: '/about', element: <About /> },
       { path: '/contact', element: <Contact /> },

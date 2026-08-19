@@ -41,27 +41,38 @@ function CaseTab() {
   const [page, setPage] = useState(1);
   const [keyword, setKeyword] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>();
+  const [productOptions, setProductOptions] = useState<{ value: number; label: string }[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<CaseItem | null>(null);
   const [form] = Form.useForm();
 
   const load = async () => {
-    const p = await caseApi.list({ page, page_size: 10, keyword: keyword || undefined, sort: 'sort,asc' });
+    const [p, pr] = await Promise.all([
+      caseApi.list({ page, page_size: 10, keyword: keyword || undefined, sort: 'sort,asc' }),
+      cmsApi<{ id: number; name: string }>('products').list({ page: 1, page_size: 100 }),
+    ]);
     setList(p.list); setTotal(p.pagination.total);
+    setProductOptions(pr.list.map((x) => ({ value: x.id, label: x.name })));
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, keyword, typeFilter]);
 
   const openModal = async (item?: CaseItem) => {
     if (item) {
       const d = await caseApi.get(item.id);
-      setEditing(d); form.setFieldsValue(d);
+      setEditing(d);
+      // 编辑回填：关联产品（case_products 多选）
+      form.setFieldsValue({
+        ...d,
+        related_product_ids: (d as unknown as { related_product_ids?: number[] }).related_product_ids || [],
+      });
     } else { setEditing(null); form.resetFields(); form.setFieldsValue({ type: '客户实景', sort: 0 }); }
     setModalOpen(true);
   };
 
   const save = async () => {
     const v = await form.validateFields();
-    if (editing) await caseApi.update(editing.id, v); else await caseApi.create(v);
+    const payload = { ...v, related_product_ids: v.related_product_ids || [] };
+    if (editing) await caseApi.update(editing.id, payload); else await caseApi.create(payload);
     message.success('保存成功'); setModalOpen(false); load();
   };
 
@@ -113,6 +124,11 @@ function CaseTab() {
           </div>
           <Form.Item label="封面图片" name="cover" valuePropName="value">
             <UploadImage width={140} height={90} tip="点击上传/替换" />
+          </Form.Item>
+          {/* 关联产品（BR-3 关联产品；前台案例详情"本案应用产品"区块展示） */}
+          <Form.Item name="related_product_ids" label="关联产品（可多选）">
+            <Select mode="multiple" allowClear placeholder="选择本案应用到的产品"
+              options={productOptions} optionFilterProp="label" />
           </Form.Item>
           <Form.Item label="项目背景" name="background"><RichText height={140} /></Form.Item>
           <Form.Item label="设计说明" name="description"><RichText height={140} /></Form.Item>
