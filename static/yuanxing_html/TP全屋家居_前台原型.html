@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TP 全屋家居 · 企业官网原型（一期）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    /* ===== Design Tokens (源自 ui-ux-pro-max 引擎：Premium black + gold) ===== */
+    --c-ink:#1C1917;        /* 主墨色 / 主色 */
+    --c-ink-2:#44403C;      /* 次级文字 */
+    --c-muted:#78716C;      /* 弱化文字 */
+    --c-gold:#B0894F;       /* 香槟金点缀 (CTA/强调) */
+    --c-gold-d:#97763F;     /* 金 hover */
+    --c-bg:#FAFAF9;         /* 米白底 */
+    --c-surface:#FFFFFF;
+    --c-line:#E7E5E4;       /* 描边 */
+    --c-soft:#F5F3EF;       /* 浅金灰区块 */
+    --shadow-sm:0 1px 2px rgba(28,25,23,.05);
+    --shadow:0 10px 30px rgba(28,25,23,.08);
+    --shadow-lg:0 24px 60px rgba(28,25,23,.14);
+    --r-sm:8px; --r:14px; --r-lg:22px;
+    --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px; --sp-7:48px; --sp-8:72px; --sp-9:112px;
+    --ff-disp:"Cormorant Garamond","Noto Serif SC",Georgia,serif;
+    --ff-body:"Montserrat","Noto Sans SC",-apple-system,"Segoe UI",sans-serif;
+    --maxw:1240px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--c-bg); color:var(--c-ink); font-family:var(--ff-body);
+    font-weight:400; line-height:1.7; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:var(--ff-disp); font-weight:600; line-height:1.2; letter-spacing:.01em; margin:0;}
+  a{color:inherit; text-decoration:none;}
+  img{max-width:100%; display:block;}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 var(--sp-5);}
+  .eyebrow{font-family:var(--ff-body); font-size:12px; letter-spacing:.32em; text-transform:uppercase; color:var(--c-gold); font-weight:600; margin:0 0 var(--sp-3);}
+  .lede{color:var(--c-muted); font-size:16px; max-width:60ch;}
+  .btn{display:inline-flex; align-items:center; gap:8px; font-family:var(--ff-body); font-weight:600; font-size:14px; letter-spacing:.02em; padding:13px 26px; border-radius:999px; cursor:pointer; border:1px solid transparent; transition:all .2s ease;}
+  .btn-primary{background:var(--c-gold); color:#fff;}
+  .btn-primary:hover{background:var(--c-gold-d); transform:translateY(-1px); box-shadow:var(--shadow);}
+  .btn-ghost{background:transparent; color:var(--c-ink); border-color:var(--c-ink);}
+  .btn-ghost:hover{background:var(--c-ink); color:#fff;}
+  .btn-line{background:transparent; color:var(--c-ink); border-color:var(--c-line);}
+  .btn-line:hover{border-color:var(--c-ink);}
+  .card{background:var(--c-surface); border:1px solid var(--c-line); border-radius:var(--r); box-shadow:var(--shadow-sm); transition:all .25s ease;}
+  .card:hover{box-shadow:var(--shadow); transform:translateY(-3px);}
+  .ph{ /* 图片占位 (原型示意) */
+    background:linear-gradient(135deg,#2b2723,#4a443c 55%,#6b6256); position:relative; overflow:hidden;
+    display:flex; align-items:flex-end; color:#f3ede3;
+  }
+  .ph::after{content:""; position:absolute; inset:0; background:radial-gradient(120% 80% at 80% 0%,rgba(176,137,79,.28),transparent 60%);}
+  .ph span{position:relative; z-index:1; padding:14px 16px; font-family:var(--ff-body); font-size:11px; letter-spacing:.18em; opacity:.85;}
+
+  /* ===== Header ===== */
+  header{position:sticky; top:0; z-index:50; background:rgba(250,250,249,.86); backdrop-filter:blur(12px); border-bottom:1px solid var(--c-line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; height:72px;}
+  .logo{display:flex; align-items:baseline; gap:10px; cursor:pointer;}
+  .logo .mark{font-family:var(--ff-disp); font-size:26px; font-weight:700; letter-spacing:.04em;}
+  .logo .sub{font-size:11px; letter-spacing:.28em; color:var(--c-muted); text-transform:uppercase;}
+  .menu{display:flex; align-items:center; gap:4px; list-style:none; margin:0; padding:0;}
+  .menu>li{position:relative;}
+  .menu>li>a, .menu>li>button{
+    font-family:var(--ff-body); font-size:15px; color:var(--c-ink); background:none; border:0; cursor:pointer;
+    padding:10px 16px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; transition:color .2s,background .2s;
+  }
+  .menu>li>a:hover, .menu>li>button:hover{color:var(--c-gold); background:var(--c-soft);}
+  .menu>li.active>a, .menu>li.active>button{color:var(--c-gold);}
+  .caret{width:9px; height:9px; border-right:1.6px solid currentColor; border-bottom:1.6px solid currentColor; transform:rotate(45deg) translateY(-2px); transition:transform .2s;}
+  .dropdown{position:absolute; top:calc(100% + 6px); left:0; min-width:190px; background:var(--c-surface); border:1px solid var(--c-line); border-radius:var(--r); box-shadow:var(--shadow-lg); padding:8px; opacity:0; visibility:hidden; transform:translateY(-6px); transition:all .18s ease;}
+  .menu>li:hover .dropdown, .menu>li:focus-within .dropdown{opacity:1; visibility:visible; transform:translateY(0);}
+  .dropdown a{display:block; padding:11px 14px; border-radius:9px; font-size:14px; color:var(--c-ink-2); transition:all .15s;}
+  .dropdown a:hover{background:var(--c-soft); color:var(--c-gold);}
+  .dropdown a.cur{color:var(--c-gold); font-weight:600;}
+  .nav-cta{display:flex; align-items:center; gap:12px;}
+  .hamburger{display:none; background:none; border:0; cursor:pointer; padding:8px;}
+  .hamburger span{display:block; width:22px; height:2px; background:var(--c-ink); margin:4px 0; transition:.2s;}
+
+  /* ===== Hero ===== */
+  .hero{position:relative; min-height:560px; display:flex; align-items:center; color:#f4efe7; overflow:hidden;
+    background:radial-gradient(120% 120% at 75% 10%,#3a342d 0%,#211d19 55%,#15120f 100%);}
+  .hero::before{content:""; position:absolute; inset:0; background:
+    radial-gradient(60% 50% at 85% 20%,rgba(176,137,79,.35),transparent 70%),
+    linear-gradient(180deg,transparent 60%,rgba(21,18,15,.6));}
+  .hero .wrap{position:relative; z-index:2; padding:96px 0;}
+  .hero h1{font-size:clamp(40px,6vw,76px); color:#fff; max-width:16ch;}
+  .hero .slogan{font-family:var(--ff-body); font-size:clamp(15px,2vw,19px); color:#d8cfc2; margin:22px 0 34px; max-width:46ch; letter-spacing:.02em;}
+  .hero .acts{display:flex; gap:14px; flex-wrap:wrap;}
+  .hero .ghost-light{background:transparent; color:#fff; border:1px solid rgba(255,255,255,.4);}
+  .hero .ghost-light:hover{background:#fff; color:var(--c-ink);}
+
+  /* carousel */
+  .banner{position:relative; height:300px; margin-top:64px; border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--shadow);}
+  .banner .slide{position:absolute; inset:0; opacity:0; transition:opacity .6s ease; display:flex; align-items:flex-end; padding:34px; color:#f3ede3;
+    background:linear-gradient(120deg,#2b2723,#534b41);}
+  .banner .slide::after{content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 80% 0%,rgba(176,137,79,.3),transparent 60%);}
+  .banner .slide.on{opacity:1;}
+  .banner .txt{position:relative; z-index:2;}
+  .banner h3{color:#fff; font-size:30px;}
+  .banner p{margin:8px 0 0; color:#e6ddcf;}
+  .dots{position:absolute; bottom:16px; right:20px; z-index:3; display:flex; gap:8px;}
+  .dots b{width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.45); cursor:pointer;}
+  .dots b.on{background:var(--c-gold);}
+
+  /* sections */
+  section{padding:var(--sp-9) 0;}
+  .sec-head{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:var(--sp-6); flex-wrap:wrap;}
+  .sec-head h2{font-size:clamp(28px,4vw,44px);}
+  .grid{display:grid; gap:var(--sp-5);}
+  .g3{grid-template-columns:repeat(3,1fr);}
+  .g2{grid-template-columns:repeat(2,1fr);}
+  .g4{grid-template-columns:repeat(4,1fr);}
+  .tile{padding:0; overflow:hidden; cursor:pointer; background:var(--c-surface);}
+  .tile .ph{height:200px;}
+  .tile .body{padding:20px;}
+  .tile .body h3{font-size:22px; margin-bottom:6px;}
+  .tile .body p{color:var(--c-muted); font-size:14px; margin:0;}
+  .tag{display:inline-block; font-family:var(--ff-body); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--c-gold); border:1px solid var(--c-line); border-radius:999px; padding:3px 12px; margin-bottom:12px;}
+
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:var(--sp-5); background:var(--c-ink); color:#f4efe7; border-radius:var(--r-lg); padding:var(--sp-7) var(--sp-6);}
+  .stats .n{font-family:var(--ff-disp); font-size:52px; color:var(--c-gold); line-height:1;}
+  .stats .l{margin-top:10px; font-size:14px; color:#cfc6ba; letter-spacing:.04em;}
+
+  .cta-band{background:linear-gradient(120deg,#211d19,#3a342d); color:#fff; border-radius:var(--r-lg); padding:var(--sp-8) var(--sp-7); display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap;}
+  .cta-band h2{color:#fff; font-size:clamp(26px,3.4vw,40px);}
+  .cta-band p{color:#d8cfc2; margin:12px 0 0; max-width:50ch;}
+
+
+  /* ===== 顶部公告条 ===== */
+  .topbar{background:var(--c-ink); color:#e7ddcd; font-size:12.5px; letter-spacing:.03em;}
+  .topbar .wrap{display:flex; align-items:center; justify-content:center; gap:14px; height:38px; position:relative;}
+  .topbar .x{position:absolute; right:var(--sp-5); cursor:pointer; opacity:.6; font-size:16px; line-height:1;}
+  .topbar .x:hover{opacity:1;}
+
+  /* ===== 服务流程 ===== */
+  .steps{display:grid; grid-template-columns:repeat(4,1fr); gap:var(--sp-5);}
+  .step{position:relative; padding:28px 24px; border:1px solid var(--c-line); border-radius:var(--r); background:var(--c-surface);}
+  .step .no{font-family:var(--ff-disp); font-size:40px; color:var(--c-gold); line-height:1; opacity:.9;}
+  .step h3{font-size:20px; margin:14px 0 8px;}
+  .step p{color:var(--c-muted); font-size:14px; margin:0;}
+  .step .arrow{position:absolute; right:-18px; top:50%; transform:translateY(-50%); color:var(--c-gold); font-size:18px;}
+
+  /* ===== 客户评价 ===== */
+  .reviews{display:grid; grid-template-columns:repeat(3,1fr); gap:var(--sp-5);}
+  .review{padding:26px; background:var(--c-surface); border:1px solid var(--c-line); border-radius:var(--r);}
+  .review .stars{color:var(--c-gold); letter-spacing:3px; font-size:15px;}
+  .review p{font-size:14px; color:var(--c-ink-2); margin:14px 0 18px; line-height:1.8;}
+  .review .who{display:flex; align-items:center; gap:12px;}
+  .review .ava{width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#2b2723,#6b6256); color:#f3ede3; display:flex; align-items:center; justify-content:center; font-family:var(--ff-disp); font-size:16px;}
+  .review .who b{font-family:var(--ff-body); font-weight:600; font-size:14px;}
+  .review .who span{display:block; color:var(--c-muted); font-size:12px;}
+
+  /* breadcrumb */
+  .crumb{padding:22px 0 0; color:var(--c-muted); font-size:13px;}
+  .crumb a:hover{color:var(--c-gold);}
+  .crumb span{margin:0 8px; opacity:.5;}
+
+  /* tabs */
+  .tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:var(--sp-6); border-bottom:1px solid var(--c-line);}
+  .tabs button{background:none; border:0; font-family:var(--ff-body); font-size:15px; color:var(--c-muted); cursor:pointer; padding:12px 4px; margin-right:24px; border-bottom:2px solid transparent; transition:.2s;}
+  .tabs button.on{color:var(--c-ink); border-color:var(--c-gold); font-weight:600;}
+
+  /* detail */
+  .detail-hero{height:420px;}
+  .detail-wrap{display:grid; grid-template-columns:1.5fr 1fr; gap:var(--sp-7); align-items:start;}
+  .spec{list-style:none; margin:0; padding:0; border-top:1px solid var(--c-line);}
+  .spec li{display:flex; justify-content:space-between; gap:20px; padding:14px 0; border-bottom:1px solid var(--c-line); font-size:14px;}
+  .spec li b{color:var(--c-muted); font-weight:500;}
+  .aside{border:1px solid var(--c-line); border-radius:var(--r); padding:var(--sp-5); background:var(--c-surface); position:sticky; top:96px;}
+
+  /* forms */
+  .field{margin-bottom:18px;}
+  .field label{display:block; font-size:13px; font-weight:600; margin-bottom:7px; color:var(--c-ink-2);}
+  .field .req{color:var(--c-gold);}
+  .field input,.field select,.field textarea{
+    width:100%; font-family:var(--ff-body); font-size:14px; color:var(--c-ink); background:var(--c-surface);
+    border:1px solid var(--c-line); border-radius:var(--r-sm); padding:12px 14px; transition:.18s;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{outline:0; border-color:var(--c-gold); box-shadow:0 0 0 3px rgba(176,137,79,.15);}
+  .field textarea{resize:vertical; min-height:110px;}
+  .field .err{color:#b42318; font-size:12px; margin-top:6px; display:none;}
+  .field.invalid input,.field.invalid select,.field.invalid textarea{border-color:#b42318;}
+  .field.invalid .err{display:block;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .check{display:flex; gap:10px; align-items:flex-start; font-size:13px; color:var(--c-muted); margin:6px 0 18px;}
+  .check input{margin-top:4px; width:16px; height:16px; accent-color:var(--c-gold);}
+  .check a{color:var(--c-gold);}
+  .form-note{font-size:12px; color:var(--c-muted); margin-top:10px;}
+  .toast{position:fixed; left:50%; bottom:34px; transform:translateX(-50%) translateY(20px); background:var(--c-ink); color:#fff; padding:14px 26px; border-radius:999px; box-shadow:var(--shadow-lg); opacity:0; pointer-events:none; transition:.3s; z-index:99; font-size:14px;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  /* timeline */
+  .timeline{position:relative; margin-left:8px; padding-left:28px; border-left:2px solid var(--c-line);}
+  .timeline .it{position:relative; padding:0 0 var(--sp-7) 0;}
+  .timeline .it::before{content:""; position:absolute; left:-37px; top:4px; width:14px; height:14px; border-radius:50%; background:var(--c-gold); border:3px solid var(--c-bg);}
+  .timeline .yr{font-family:var(--ff-disp); font-size:30px; color:var(--c-gold);}
+  .timeline h3{font-size:20px; margin:6px 0 8px;}
+  .timeline p{color:var(--c-muted); margin:0;}
+
+  /* contact */
+  .contact-grid{display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-7); align-items:start;}
+  .map{height:260px; border-radius:var(--r); border:1px solid var(--c-line); background:
+    linear-gradient(0deg,rgba(28,25,23,.04),rgba(28,25,23,.04)),
+    repeating-linear-gradient(45deg,#eef0f2 0 14px,#e7eaed 14px 28px); display:flex; align-items:center; justify-content:center; color:var(--c-muted); font-size:13px;}
+  .info-list{list-style:none; margin:0; padding:0;}
+  .info-list li{padding:14px 0; border-bottom:1px solid var(--c-line); display:flex; gap:14px; font-size:14px;}
+  .info-list li b{color:var(--c-ink-2); min-width:64px;}
+
+  /* footer */
+  footer{background:var(--c-ink); color:#cfc6ba; padding:var(--sp-8) 0 var(--sp-6);}
+  footer .top{display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:var(--sp-6);}
+  footer h4{color:#fff; font-family:var(--ff-body); font-size:13px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:18px;}
+  footer a{display:block; color:#cfc6ba; font-size:14px; padding:6px 0; transition:.18s;}
+  footer a:hover{color:var(--c-gold);}
+  footer .fmark{font-family:var(--ff-disp); font-size:30px; color:#fff;}
+  footer .fsub{font-size:12px; letter-spacing:.28em; text-transform:uppercase; margin-top:6px;}
+  footer .bottom{border-top:1px solid rgba(255,255,255,.12); margin-top:var(--sp-7); padding-top:var(--sp-5); font-size:12px; color:#9c9388; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  /* 联系我们信息条（置于页脚最下方，方便客户查找） */
+  footer .contact-bar{border-top:1px solid rgba(255,255,255,.12); margin-top:var(--sp-7); padding-top:var(--sp-6); display:grid; grid-template-columns:repeat(4,1fr); gap:var(--sp-5);}
+  footer .contact-bar .ci{display:flex; gap:12px; align-items:flex-start;}
+  footer .contact-bar .ico{flex:0 0 34px; height:34px; border-radius:9px; background:rgba(176,137,79,.16); color:var(--c-gold); display:flex; align-items:center; justify-content:center;}
+  footer .contact-bar .ico svg{width:18px; height:18px;}
+  footer .contact-bar .lab{font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:#9c9388;}
+  footer .contact-bar .val{font-size:14px; color:#f3ece1; margin-top:4px; line-height:1.5;}
+  footer .contact-bar .val a{display:inline; color:#f3ece1;}
+  footer .contact-bar .val a:hover{color:var(--c-gold);}
+  @media(max-width:768px){ footer .contact-bar{grid-template-columns:repeat(2,1fr);} }
+  @media(max-width:420px){ footer .contact-bar{grid-template-columns:1fr;} }
+
+  .empty{padding:60px 20px; text-align:center; color:var(--c-muted); border:1px dashed var(--c-line); border-radius:var(--r); background:var(--c-surface);}
+  .skeleton{height:200px; border-radius:var(--r); background:linear-gradient(90deg,#eee 25%,#f6f6f6 50%,#eee 75%); background-size:200% 100%; animation:sk 1.2s infinite;}
+  @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+  .pane{display:none; animation:fade .35s ease;}
+  .pane.on{display:block;}
+  @keyframes fade{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:translateY(0)}}
+
+  @media (max-width:1024px){
+    .g4{grid-template-columns:repeat(2,1fr);} .stats{grid-template-columns:repeat(2,1fr);}
+    .detail-wrap,.contact-grid{grid-template-columns:1fr;} .aside{position:static;}
+  }
+  @media (max-width:768px){
+    .menu,.nav-cta .btn{display:none;}
+    .hamburger{display:block;}
+    .menu.open{display:flex; flex-direction:column; position:absolute; top:72px; left:0; right:0; background:var(--c-surface); border-bottom:1px solid var(--c-line); padding:12px; box-shadow:var(--shadow);}
+    .menu.open>li{width:100%;}
+    .menu.open>li>a,.menu.open>li>button{width:100%; justify-content:space-between;}
+    .menu.open .dropdown{position:static; opacity:1; visibility:visible; transform:none; box-shadow:none; border:0; padding:0 0 0 16px;}
+    .g3,.g2,.g4{grid-template-columns:1fr;}
+    .stats{grid-template-columns:1fr 1fr;} .row2{grid-template-columns:1fr;}
+    section{padding:var(--sp-8) 0;} .hero .wrap{padding:64px 0;}
+  }
+  @media (max-width:1024px){
+    .steps,.reviews{grid-template-columns:repeat(2,1fr);} .step .arrow{display:none;}
+  }
+  @media (max-width:768px){
+    .steps,.reviews{grid-template-columns:1fr;}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+</style>
+</head>
+<body>
+
+<!-- ============ 顶部公告条 ============ -->
+<div class="topbar" id="topbar"><div class="wrap">新展厅开业 · 预约到店即享专属空间规划礼遇 <span class="x" onclick="document.getElementById('topbar').style.display='none'" title="关闭">×</span></div></div>
+
+<!-- ============ HEADER ============ -->
+<header>
+  <div class="wrap nav">
+    <div class="logo" onclick="go('home')">
+      <span class="mark">TP</span><span class="sub">全屋家居</span>
+    </div>
+    <ul class="menu" id="menu">
+      <li data-top="home"><a onclick="go('home')">首页</a></li>
+      <li data-top="product">
+        <button onclick="toggleDD(this)">产品 <i class="caret"></i></button>
+        <div class="dropdown">
+          <a data-route="product" onclick="go('product')">产品中心</a>
+          <a data-route="case" onclick="go('case')">新案例展示</a>
+        </div>
+      </li>
+      <li data-top="news">
+        <button onclick="toggleDD(this)">新闻 <i class="caret"></i></button>
+        <div class="dropdown">
+          <a data-route="news" data-tab="corp" onclick="go('news','corp')">企业新闻</a>
+          <a data-route="news" data-tab="ind" onclick="go('news','ind')">行业资讯</a>
+        </div>
+      </li>
+      <li data-top="recruit">
+        <button onclick="toggleDD(this)">招聘入口 <i class="caret"></i></button>
+        <div class="dropdown">
+          <a data-route="recruit" data-tab="social" onclick="go('recruit','social')">社会招聘</a>
+          <a data-route="recruit" data-tab="campus" onclick="go('recruit','campus')">校园招聘</a>
+        </div>
+      </li>
+      <li data-top="about">
+        <button onclick="toggleDD(this)">关于我们 <i class="caret"></i></button>
+        <div class="dropdown">
+          <a data-route="about" onclick="go('about')">关于TP</a>
+          <a data-route="about-history" onclick="go('about-history')">发展历程</a>
+          <a data-route="about-brand" onclick="go('about-brand')">品牌介绍</a>
+          <a data-route="contact" onclick="go('contact')">联系我们</a>
+        </div>
+      </li>
+    </ul>
+    <div class="nav-cta">
+      <button class="btn btn-primary" onclick="go('contact')">在线预约</button>
+      <button class="hamburger" id="burger" aria-label="菜单"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ PAGES ============ -->
+
+<!-- 首页 -->
+<main class="pane on" id="p-home">
+  <div class="hero">
+    <div class="wrap">
+      <p class="eyebrow" style="color:var(--c-gold)">WHOLE-HOUSE FURNITURE</p>
+      <h1>以木为骨，以光为境<br/>重塑全屋生活美学</h1>
+      <p class="slogan">TP 全屋家居 · 为每一寸空间定制从容与温度。从客厅到书房，以一体化设计语言，呈现高端人居的从容气度。</p>
+      <div class="acts">
+        <button class="btn btn-primary" onclick="go('product')">探索产品系列</button>
+        <button class="btn ghost-light" onclick="go('case')">查看实景案例</button>
+      </div>
+      <div class="banner" id="banner">
+        <div class="slide on"><div class="txt"><h3>意式极简 · 客厅一体化方案</h3><p>木饰面与微水泥的对话，让留白成为主角。</p></div></div>
+        <div class="slide"><div class="txt"><h3>主卧套间 · 温润胡桃</h3><p>低饱和暖调，构筑入睡前的松弛仪式。</p></div></div>
+        <div class="slide"><div class="txt"><h3>书房 · 光影叙事</h3><p>定制书墙与隐藏式收纳，秩序与静谧并存。</p></div></div>
+        <div class="dots" id="dots"><b class="on" onclick="setSlide(0)"></b><b onclick="setSlide(1)"></b><b onclick="setSlide(2)"></b></div>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <div><p class="eyebrow">PRODUCT SERIES</p><h2>产品系列</h2></div>
+        <button class="btn btn-line" onclick="go('product')">查看产品中心 →</button>
+      </div>
+      <div class="grid g4">
+        <div class="card tile" onclick="go('product')"><div class="ph"><span>示意图 / 客厅</span></div><div class="body"><h3>客厅</h3><p>沙发 · 茶几 · 电视柜 · 收纳墙</p></div></div>
+        <div class="card tile" onclick="go('product')"><div class="ph"><span>示意图 / 卧室</span></div><div class="body"><h3>卧室</h3><p>床具 · 衣柜 · 床头柜 · 软装</p></div></div>
+        <div class="card tile" onclick="go('product')"><div class="ph"><span>示意图 / 书房</span></div><div class="body"><h3>书房</h3><p>书墙 · 书桌 · 定制收纳</p></div></div>
+        <div class="card tile" onclick="go('product')"><div class="ph"><span>示意图 / 全屋定制</span></div><div class="body"><h3>全屋定制</h3><p>一体化设计 · 风格统一</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:var(--c-soft)">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><p class="eyebrow">FEATURED CASES</p><h2>新案例展示</h2></div>
+        <button class="btn btn-line" onclick="go('case')">全部案例 →</button>
+      </div>
+      <div class="grid g3">
+        <div class="card tile" onclick="go('case')"><div class="ph"><span>客户实景 / 平层</span></div><div class="body"><span class="tag">客户实景</span><h3>城芯平层 · 胡桃暖调</h3><p>现代简约 · 客厅 / 餐厅</p></div></div>
+        <div class="card tile" onclick="go('case')"><div class="ph"><span>设计方案 / 别墅</span></div><div class="body"><span class="tag">设计方案</span><h3>叠墅 · 意式极简</h3><p>现代简约 · 全屋</p></div></div>
+        <div class="card tile" onclick="go('case')"><div class="ph"><span>客户实景 / 三居</span></div><div class="body"><span class="tag">客户实景</span><h3>三居 · 原木温润</h3><p>原木风 · 卧室 / 书房</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <div><p class="eyebrow">NEWS</p><h2>新闻动态</h2></div>
+        <button class="btn btn-line" onclick="go('news')">更多资讯 →</button>
+      </div>
+      <div class="grid g3">
+        <div class="card tile" onclick="go('news')"><div class="ph"><span>企业新闻</span></div><div class="body"><p style="color:var(--c-gold);font-size:12px;letter-spacing:.1em">2026-08-10</p><h3>TP 全屋家居新展厅落子上海</h3><p>沉浸式场景体验，重新定义选购方式。</p></div></div>
+        <div class="card tile" onclick="go('news')"><div class="ph"><span>行业资讯</span></div><div class="body"><p style="color:var(--c-gold);font-size:12px;letter-spacing:.1em">2026-08-02</p><h3>2026 高端整装趋势报告</h3><p>一体化设计成为品质人居主流选择。</p></div></div>
+        <div class="card tile" onclick="go('news')"><div class="ph"><span>企业新闻</span></div><div class="body"><p style="color:var(--c-gold);font-size:12px;letter-spacing:.1em">2026-07-21</p><h3>TP 获绿色家居设计大奖</h3><p>以可持续材料践行长期主义。</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:var(--c-soft)">
+    <div class="wrap">
+      <div class="stats">
+        <div><div class="n">18</div><div class="l">年专注高端整装</div></div>
+        <div><div class="n">2600+</div><div class="l">服务品质家庭</div></div>
+        <div><div class="n">32</div><div class="l">项设计荣誉资质</div></div>
+        <div><div class="n">98%</div><div class="l">客户满意度</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:var(--c-soft)">
+    <div class="wrap">
+      <div class="sec-head"><div><p class="eyebrow">HOW IT WORKS</p><h2>服务流程</h2></div><button class="btn btn-line" onclick="go('contact')">预约咨询 →</button></div>
+      <div class="steps">
+        <div class="step"><div class="no">01</div><h3>预约咨询</h3><p>留下到店意向，专属顾问 1 对 1 沟通需求与预算。</p><div class="arrow">→</div></div>
+        <div class="step"><div class="no">02</div><h3>上门量房</h3><p>设计师实地勘测，采集户型、光照等真实空间数据。</p><div class="arrow">→</div></div>
+        <div class="step"><div class="no">03</div><h3>方案设计</h3><p>一体化设计呈现，材质与软装统一规划、所见即所得。</p><div class="arrow">→</div></div>
+        <div class="step"><div class="no">04</div><h3>一体化交付</h3><p>工厂定制到上门安装，闭环交付与长期售后跟进。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-head"><div><p class="eyebrow">TESTIMONIALS</p><h2>客户评价</h2></div></div>
+      <div class="reviews">
+        <div class="review"><div class="stars">★★★★★</div><p>“从量房到落地全程省心，胡桃暖调正是我想要的家的样子，朋友来都夸。”</p><div class="who"><div class="ava">林</div><div><b>林女士</b><span>上海 · 城芯平层</span></div></div></div>
+        <div class="review"><div class="stars">★★★★★</div><p>“设计师真的懂生活，收口细节到位，入住半年依旧满意，质感很稳。”</p><div class="who"><div class="ava">陈</div><div><b>陈先生</b><span>杭州 · 叠墅</span></div></div></div>
+        <div class="review"><div class="stars">★★★★★</div><p>“一体化交付让工期可控、风格统一，省去了多处对接的麻烦。”</p><div class="who"><div class="ava">王</div><div><b>王小姐</b><span>上海 · 三居</span></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="cta-band">
+        <div>
+          <p class="eyebrow" style="color:var(--c-gold)">JOIN US / BOOK A VISIT</p>
+          <h2>预约到店，亲鉴全屋之美</h2>
+          <p>留下您的到店意向，专属顾问将尽快与您联系，为您规划一对一空间方案。</p>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="go('contact')">在线预约</button>
+          <button class="btn ghost-light" onclick="go('recruit')">查看招聘</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- 产品中心 -->
+<main class="pane" id="p-product">
+  <div class="wrap"><div class="crumb"><a onclick="go('home')">首页</a><span>/</span>产品 / 产品中心</div></div>
+  <section style="padding-top:var(--sp-6)">
+    <div class="wrap">
+      <div class="sec-head"><div><p class="eyebrow">PRODUCT CENTER</p><h2>产品中心</h2></div></div>
+      <div class="tabs">
+        <button class="on" onclick="filterProd(this,'all')">全部</button>
+        <button onclick="filterProd(this,'客厅')">客厅</button>
+        <button onclick="filterProd(this,'卧室')">卧室</button>
+        <button onclick="filterProd(this,'书房')">书房</button>
+        <button onclick="filterProd(this,'全屋定制')">全屋定制</button>
+      </div>
+      <div class="grid g3" id="prodGrid"></div>
+    </div>
+  </section>
+</main>
+
+<!-- 新案例展示 -->
+<main class="pane" id="p-case">
+  <div class="wrap"><div class="crumb"><a onclick="go('home')">首页</a><span>/</span>产品 / 新案例展示</div></div>
+  <section style="padding-top:var(--sp-6)">
+    <div class="wrap">
+      <div class="sec-head"><div><p class="eyebrow">FEATURED CASES</p><h2>新案例展示</h2></div></div>
+      <div class="tabs">
+        <button class="on" onclick="filterCase(this,'all')">全部</button>
+        <button onclick="filterCase(this,'客户实景')">客户实景</button>
+        <button onclick="filterCase(this,'设计方案')">设计方案</button>
+      </div>
+      <div class="grid g3" id="caseGrid"></div>
+    </div>
+  </section>
+</main>
+
+<!-- 新闻 -->
+<main class="pane" id="p-news">
+  <div class="wrap"><div class="crumb"><a onclick="go('home')">首页</a><span>/</span>新闻</div></div>
+  <section style="padding-top:var(--sp-6)">
+    <div class="wrap">
+      <div class="sec-head"><div><p class="eyebrow">NEWS</p><h2>新闻</h2></div></div>
+      <div class="tabs" id="newsTabs">
+        <button class="on" data-tab="corp" onclick="switchNews(this,'corp')">企业新闻</button>
+        <button data-tab="ind" onclick="switchNews(this,'ind')">行业资讯</button>
+      </div>
+      <div class="grid g3" id="newsGrid"></div>
+    </div>
+  </section>
+</main>
+
+<!-- 招聘入口 -->
+<main class="pane" id="p-recruit">
+  <div class="wrap"><div class="crumb"><a onclick="go('home')">首页</a><span>/</span>招聘入口</div></div>
+  <section style="padding-top:var(--sp-6)">
+    <div class="wrap">
+      <div class="sec-head"><div><p class="eyebrow">CAREERS</p><h2>招聘入口</h2></div></div>
+      <div class="tabs" id="recTabs">
+        <button class="on" data-tab="social" onclick="switchRec(this,'social')">社会招聘</button>
+        <button data-tab="campus" onclick="switchRec(this,'campus')">校园招聘</button>
+      </div>
+      <div class="grid g2" id="jobGrid"></div>
+    </div>
+  </section>
+</main>
+
+<!-- 招聘职位详情（抽屉式页面） -->
+<main class="pane" id="p-job">
+  <div class="wrap"><div class="crumb"><a onclick="go('recruit')">招聘入口</a><span>/</span><span id="jobCrumb">职位详情</span></div></div>
+  <section style="padding-top:var(--sp-6)">
+    <div class="wrap">
+      <div class="detail-wrap">
+        <div>
+          <p class="eyebrow" id="jobType">SOCIAL</p>
+          <h2 id="jobTitle">职位名称</h2>
+          <p class="lede" id="jobMeta" style="margin:14px 0 28px"></p>
+          <h3 style="margin-bottom:12px">岗位职责</h3><p class="lede" id="jobDuty"></p>
+          <h3 style="margin:28px 0 12px">任职要求</h3><p class="lede" id="jobReq"></p>
+        </div>
+        <aside>
+          <h4 style="font-family:var(--ff-body);font-size:14px;letter-spacing:.04em;margin:0 0 16px">在线投递简历</h4>
+          <form id="resumeForm" novalidate>
+            <div class="field" id="f-name"><label>姓名 <span class="req">*</span></label><input name="name" placeholder="请输入姓名"/><div class="err">请填写姓名</div></div>
+            <div class="field" id="f-phone"><label>手机号 <span class="req">*</span></label><input name="phone" placeholder="11 位手机号"/><div class="err">请输入正确的手机号</div></div>
+            <div class="field"><label>邮箱</label><input name="email" placeholder="选填"/></div>
+            <div class="field"><label>应聘职位</label><input name="job" id="f-job" readonly/></div>
+            <div class="field" id="f-extra"><label id="l-extra">当前职位</label><input name="extra" placeholder="选填"/></div>
+            <div class="field"><label>个人简介</label><textarea name="intro" placeholder="选填"></textarea></div>
+            <div class="field" id="f-file"><label>简历附件（PDF/Word，≤10MB）</label><input type="file" name="file" accept=".pdf,.doc,.docx"/><div class="err">仅支持 PDF/Word，且 ≤10MB</div></div>
+            <div class="check"><input type="checkbox" id="resumeAgree"/><label for="resumeAgree">我已阅读并同意 <a onclick="go('contact')">《隐私政策》</a>，授权 TP 全屋家居处理我的个人信息。</label></div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">提交投递</button>
+            <p class="form-note">提交后信息将进入后台「简历投递管理」，由招聘专员跟进。</p>
+          </form>
+        </aside>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- 关于TP -->
+<main class="pane" id="p-about">
+  <div class="wrap"><div class="crumb"><a onclick="go('home')">首页</a><span>/</span>关于我们 / 关于TP</div></div>
+  <section style="padding-top:var(--sp-6)">
+    <div class="wrap">
+      <div class="detail-wrap">
+        <div>
+          <p class="eyebrow">ABOUT TP</p>
+          <h2 style="font-size:clamp(30px,4vw,48px)">关于 TP 全屋家居</h2>
+          <p class="lede" style="margin:20px 0;font-size:17px">TP 全屋家居成立于 2008 年，专注高端整体家居解决方案。以「一体化设计、一体化交付」为核心理念，为品质家庭提供从空间规划到软装陈设的全链路服务。</p>
+          <p class="lede">我们相信，家不是家具的堆砌，而是生活方式的容器。18 年来，TP 坚持用克制而温润的设计语言，让每一寸空间都承载从容与温度。</p>
+          <h3 style="margin:32px 0 14px">核心价值观</h3>
+          <ul class="lede" style="padding-left:20px"><li>以用户为中心：先懂生活，再谈设计。</li><li>长期主义：可持续材料，经得起时间的材质。</li><li>匠艺至上：每一个收口都值得被认真对待。</li></ul>
+        </div>
+        <div class="ph detail-hero"><span>品牌主视觉 示意图</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- 发展历程 -->
+<main class="pane" id="p-about-history">
+  <div class="wrap"><div class="crumb"><a onclick="go('home')">首页</a><span>/</span>关于我们 / 发展历程</div></div>
+  <section style="padding-top:var(--sp-6)">
+    <div class="wrap">
+      <div class="sec-head"><div><p class="eyebrow">MILESTONES</p><h2>发展历程</h2></div></div>
+      <div class="timeline">
+        <div class="it"><div class="yr">2008</div><h3>品牌创立</h3><p>TP 全屋家居于上海成立，确立高端整装方向。</p></div>
+        <div class="it"><div class="yr">2013</div><h3>一体化交付体系建成</h3><p>打通设计、生产、安装闭环，交付周期行业领先。</p></div>
+        <div class="it"><div class="yr">2018</div><h3>第 100 城服务网络</h3><p>品质服务覆盖全国主要城市，会员家庭破千。</p></div>
+        <div class="it"><div class="yr">2023</div><h3>绿色家居实验室</h3><p>建立可持续材料研发体系，获多项环保认证。</p></div>
+        <div class="it"><div class="yr">2026</div><h3>沉浸式新展厅</h3><p>上海新展厅落地，场景化体验重新定义选购。</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- 品牌介绍 -->
+<main class="pane" id="p-about-brand">
+  <div class="wrap"><div class="crumb"><a onclick="go('home')">首页</a><span>/</span>关于我们 / 品牌介绍</div></div>
+  <section style="padding-top:var(--sp-6)">
+    <div class="wrap">
+      <div class="sec-head"><div><p class="eyebrow">BRAND STORY</p><h2>品牌介绍</h2></div></div>
+      <div class="grid g2" style="align-items:center">
+        <div class="ph detail-hero"><span>品牌故事 示意图</span></div>
+        <div>
+          <h3 style="font-size:26px">品牌故事</h3>
+          <p class="lede" style="margin:14px 0">从一张被反复打磨的餐桌开始，TP 把「经得起日常」当作设计的底线。我们相信高端不是奢华的堆砌，而是恰如其分的从容。</p>
+          <h3 style="font-size:26px;margin-top:24px">品牌理念</h3>
+          <p class="lede">一体化设计语言，让家拥有统一的呼吸感；可持续材料，让美通向长久。</p>
+          <h3 style="font-size:26px;margin-top:24px">荣誉资质</h3>
+          <div class="grid g4" style="margin-top:12px">
+            <div class="card" style="padding:18px;text-align:center"><div class="ph" style="height:90px;border-radius:10px"><span>奖杯 示意</span></div><p style="font-size:13px;color:var(--c-muted);margin:10px 0 0">绿色家居设计大奖</p></div>
+            <div class="card" style="padding:18px;text-align:center"><div class="ph" style="height:90px;border-radius:10px"><span>认证 示意</span></div><p style="font-size:13px;color:var(--c-muted);margin:10px 0 0">环保材料认证</p></div>
+            <div class="card" style="padding:18px;text-align:center"><div class="ph" style="height:90px;border-radius:10px"><span>认证 示意</span></div><p style="font-size:13px;color:var(--c-muted);margin:10px 0 0">质量体系认证</p></div>
+            <div class="card" style="padding:18px;text-align:center"><div class="ph" style="height:90px;border-radius:10px"><span>奖杯 示意</span></div><p style="font-size:13px;color:var(--c-muted);margin:10px 0 0">设计创新奖</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- 联系我们（含在线预约 + 在线留言） -->
+<main class="pane" id="p-contact">
+  <div class="wrap"><div class="crumb"><a onclick="go('home')">首页</a><span>/</span>关于我们 / 联系我们</div></div>
+  <section style="padding-top:var(--sp-6)">
+    <div class="wrap">
+      <div class="sec-head"><div><p class="eyebrow">CONTACT US</p><h2>联系我们</h2></div></div>
+      <div class="contact-grid">
+        <div>
+          <ul class="info-list">
+            <li><b>地址</b><span>上海市徐汇区××路 ×× 号 TP 体验中心</span></li>
+            <li><b>电话</b><span>400-XXX-XXXX</span></li>
+            <li><b>邮箱</b><span>contact@tp-home.com</span></li>
+            <li><b>时间</b><span>周一至周日 10:00 – 20:00</span></li>
+          </ul>
+          <div class="map" style="margin-top:18px">合规地图占位 · 企业位置标注（腾讯地图）</div>
+        </div>
+        <div>
+          <div class="tabs" id="contactTabs">
+            <button class="on" data-tab="appt" onclick="switchContact(this,'appt')">在线预约</button>
+            <button data-tab="msg" onclick="switchContact(this,'msg')">在线留言</button>
+          </div>
+          <!-- 在线预约表单 -->
+          <form id="apptForm" novalidate>
+            <div class="field" id="a-name"><label>姓名 <span class="req">*</span></label><input name="name" placeholder="请输入姓名"/><div class="err">请填写姓名</div></div>
+            <div class="field" id="a-phone"><label>手机号 <span class="req">*</span></label><input name="phone" placeholder="11 位手机号"/><div class="err">请输入正确的手机号</div></div>
+            <div class="row2">
+              <div class="field" id="a-date"><label>预约日期 <span class="req">*</span></label><input type="date" name="date"/><div class="err">请选择不早于今日的日期</div></div>
+              <div class="field" id="a-slot"><label>到店时段 <span class="req">*</span></label><select name="slot"><option value="">请选择</option><option>上午（09:00–12:00）</option><option>下午（13:00–18:00）</option><option>晚间（18:00–20:00）</option></select><div class="err">请选择时段</div></div>
+            </div>
+            <div class="field"><label>到店意向 / 备注</label><textarea name="note" placeholder="选填，如意向空间、风格偏好"></textarea></div>
+            <div class="field" id="a-cap"><label>图形验证码 <span class="req">*</span></label><div style="display:flex;gap:10px"><input name="cap" placeholder="请输入右图文字"/><div id="capBox" style="flex:0 0 110px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--ff-disp);font-size:22px;letter-spacing:.2em;color:#fff;background:linear-gradient(120deg,#1C1917,#44403C);cursor:pointer;user-select:none" onclick="genCap()" title="点击刷新">TP26</div></div><div class="err">验证码错误</div></div>
+            <div class="check"><input type="checkbox" id="apptAgree"/><label for="apptAgree">我已阅读并同意 <a onclick="go('contact')">《隐私政策》</a>，授权 TP 全屋家居处理我的预约信息。</label></div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">提交预约</button>
+            <p class="form-note">提交后将进入后台「在线预约管理」，工作人员会尽快与您联系。</p>
+          </form>
+          <!-- 在线留言表单 -->
+          <form id="msgForm" novalidate style="display:none">
+            <div class="field" id="m-name"><label>姓名 <span class="req">*</span></label><input name="name" placeholder="请输入姓名"/><div class="err">请填写姓名</div></div>
+            <div class="field" id="m-contact"><label>联系方式 <span class="req">*</span></label><input name="contact" placeholder="手机号或邮箱"/><div class="err">请填写联系方式</div></div>
+            <div class="field" id="m-content"><label>留言内容 <span class="req">*</span></label><textarea name="content" placeholder="请描述您的咨询内容"></textarea><div class="err">请填写留言内容</div></div>
+            <div class="field" id="m-cap"><label>图形验证码 <span class="req">*</span></label><div style="display:flex;gap:10px"><input name="cap" placeholder="请输入右图文字"/><div id="capBox2" style="flex:0 0 110px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--ff-disp);font-size:22px;letter-spacing:.2em;color:#fff;background:linear-gradient(120deg,#1C1917,#44403C);cursor:pointer;user-select:none" onclick="genCap2()" title="点击刷新">TP26</div></div><div class="err">验证码错误</div></div>
+            <div class="check"><input type="checkbox" id="msgAgree"/><label for="msgAgree">我已阅读并同意 <a onclick="go('contact')">《隐私政策》</a>，授权 TP 全屋家居处理我的留言信息。</label></div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">提交留言</button>
+            <p class="form-note">提交后将进入后台「留言咨询管理」，由客服跟进处理。</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="fmark">TP 全屋家居</div>
+        <div class="fsub">Whole-House Furniture</div>
+        <p style="margin:16px 0 0;font-size:14px;max-width:34ch">以木为骨，以光为境，重塑全屋生活美学。</p>
+      </div>
+      <div>
+        <h4>产品</h4>
+        <a onclick="go('product')">产品中心</a><a onclick="go('case')">新案例展示</a>
+      </div>
+      <div>
+        <h4>新闻</h4>
+        <a onclick="go('news','corp')">企业新闻</a><a onclick="go('news','ind')">行业资讯</a>
+      </div>
+      <div>
+        <h4>关于</h4>
+        <a onclick="go('about')">关于TP</a><a onclick="go('about-history')">发展历程</a><a onclick="go('about-brand')">品牌介绍</a><a onclick="go('contact')">联系我们</a><a onclick="go('recruit')">招聘入口</a>
+      </div>
+    </div>
+    <div class="contact-bar">
+      <div class="ci">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <div><div class="lab">地址</div><div class="val">上海市徐汇区××路 ×× 号<br>TP 体验中心</div></div>
+      </div>
+      <div class="ci">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+        <div><div class="lab">电话</div><div class="val"><a href="tel:400-XXX-XXXX">400-XXX-XXXX</a></div></div>
+      </div>
+      <div class="ci">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 6l8 6 8-6"/></svg></div>
+        <div><div class="lab">邮箱</div><div class="val"><a href="mailto:contact@tp-home.com">contact@tp-home.com</a></div></div>
+      </div>
+      <div class="ci">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <div><div class="lab">时间</div><div class="val">周一至周日<br>10:00 – 20:00</div></div>
+      </div>
+    </div>
+    <div class="bottom">
+      <span>© 2026 TP 全屋家居 · 版权所有</span>
+      <span>ICP 备案号：沪ICP备XXXXXXXX号（示意） · 隐私政策 · 用户协议</span>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== 数据（原型占位，实际来自后台配置） ===================== */
+const PRODUCTS=[
+  {t:"云栖沙发", s:"客厅", d:"模块化三人位 · 羽绒触感", ph:"客厅/沙发"},
+  {t:"砚石茶几", s:"客厅", d:"天然石材台面 · 圆角收口", ph:"客厅/茶几"},
+  {t:"序章电视柜", s:"客厅", d:"悬浮式 · 隐藏收纳", ph:"客厅/收纳"},
+  {t:"眠山床具", s:"卧室", d:"软包床头 · 静音排骨架", ph:"卧室/床"},
+  {t:"归处衣柜", s:"卧室", d:"到顶定制 · 内部分区", ph:"卧室/衣柜"},
+  {t:"拾光床头柜", s:"卧室", d:"岩板台面 · 隐形抽屉", ph:"卧室/床头柜"},
+  {t:"墨林书墙", s:"书房", d:"整墙定制 · 开放格+柜", ph:"书房/书墙"},
+  {t:"知行书桌", s:"书房", d:"人体工学 · 线缆管理", ph:"书房/书桌"},
+  {t:"全屋定制套餐A", s:"全屋定制", d:"客餐卧一体化方案", ph:"全屋/套餐"},
+];
+const CASES=[
+  {t:"城芯平层 · 胡桃暖调", tag:"客户实景", style:"现代简约", space:"客厅/餐厅", ph:"实景/平层"},
+  {t:"叠墅 · 意式极简", tag:"设计方案", style:"现代简约", space:"全屋", ph:"方案/别墅"},
+  {t:"三居 · 原木温润", tag:"客户实景", style:"原木风", space:"卧室/书房", ph:"实景/三居"},
+  {t:"复式 · 光影叙事", tag:"设计方案", style:"侘寂风", space:"楼梯/书房", ph:"方案/复式"},
+  {t:"大平层 · 轻奢金调", tag:"客户实景", style:"轻奢", space:"客餐厅", ph:"实景/大平层"},
+  {t:"LOFT · 工业温润", tag:"设计方案", style:"工业风", space:"全屋", ph:"方案/LOFT"},
+];
+const NEWS={
+  corp:[
+    {d:"2026-08-10", t:"TP 全屋家居新展厅落子上海", b:"沉浸式场景体验，重新定义选购方式。"},
+    {d:"2026-07-21", t:"TP 获绿色家居设计大奖", b:"以可持续材料践行长期主义。"},
+    {d:"2026-06-15", t:"TP 会员体系升级，专属顾问上线", b:"一对一空间规划，服务再进阶。"},
+  ],
+  ind:[
+    {d:"2026-08-02", t:"2026 高端整装趋势报告", b:"一体化设计成为品质人居主流选择。"},
+    {d:"2026-07-09", t:"可持续材料如何重塑家居供应链", b:"环保与质感可以兼得。"},
+    {d:"2026-05-28", t:"小户型也能拥有全屋秩序感", b:"定制化收纳的空间魔法。"},
+  ]
+};
+const JOBS={
+  social:[
+    {t:"高级全屋设计师", dept:"设计中心", loc:"上海", pay:"20–35K·14薪", duty:"负责高端客户的整屋方案设计与落地跟进。", req:"5 年以上整装设计经验，具备一体化交付思维。", extraL:"当前职位", extraP:"选填"},
+    {t:"空间软装陈设师", dept:"软装中心", loc:"上海/杭州", pay:"15–25K", duty:"完成软装方案与现场陈设。", req:"3 年以上软装经验，审美在线。", extraL:"当前职位", extraP:"选填"},
+    {t:"客户成功经理", dept:"客户中心", loc:"上海", pay:"12–20K", duty:"统筹交付体验与售后跟进。", req:"良好的沟通与项目管理能力。", extraL:"当前职位", extraP:"选填"},
+  ],
+  campus:[
+    {t:"管培生 · 设计方向", dept:"设计中心", loc:"上海", pay:"校招", duty:"轮岗学习全屋设计全流程。", req:"2026 届本科及以上，设计相关专业。", extraL:"学校", extraP:"选填"},
+    {t:"管培生 · 运营方向", dept:"运营中心", loc:"上海/全国", pay:"校招", duty:"参与门店与线上运营。", req:"2026 届，专业不限，逻辑清晰。", extraL:"学校", extraP:"选填"},
+    {t:"视觉设计实习生", dept:"品牌中心", loc:"上海", pay:"实习", duty:"协助品牌视觉与社媒物料。", req:"在校生，熟练 Figma/PS。", extraL:"学校", extraP:"选填"},
+  ]
+};
+
+/* ===================== 渲染 ===================== */
+function cardHTML(o){return `<div class="card tile" onclick="${o.on||''}"><div class="ph"><span>${o.ph}</span></div><div class="body">${o.tag?`<span class="tag">${o.tag}</span>`:''}<h3>${o.t}</h3><p>${o.d}</p></div></div>`;}
+function renderGrid(){
+  document.getElementById('prodGrid').innerHTML=PRODUCTS.map(p=>cardHTML({...p,on:"go('product')"})).join('');
+  document.getElementById('caseGrid').innerHTML=CASES.map(c=>cardHTML({t:c.t,ph:c.ph,tag:c.tag,d:`${c.style} · ${c.space}`,on:"go('case')"})).join('');
+  document.getElementById('newsGrid').innerHTML=NEWS.corp.map(n=>`<div class="card tile" onclick="go('news')"><div class="ph"><span>企业新闻</span></div><div class="body"><p style="color:var(--c-gold);font-size:12px;letter-spacing:.1em">${n.d}</p><h3>${n.t}</h3><p>${n.b}</p></div></div>`).join('');
+  document.getElementById('jobGrid').innerHTML=JOBS.social.map((j,i)=>`<div class="card tile" style="cursor:pointer" onclick="openJob('social',${i})"><div class="body"><span class="tag">社会招聘</span><h3>${j.t}</h3><p>${j.dept} · ${j.loc} · ${j.pay}</p><p style="margin-top:10px;color:var(--c-gold)">查看详情并投递 →</p></div></div>`).join('');
+}
+function renderNews(tab){
+  document.getElementById('newsGrid').innerHTML=NEWS[tab].map(n=>`<div class="card tile" onclick="go('news')"><div class="ph"><span>${tab==='corp'?'企业新闻':'行业资讯'}</span></div><div class="body"><p style="color:var(--c-gold);font-size:12px;letter-spacing:.1em">${n.d}</p><h3>${n.t}</h3><p>${n.b}</p></div></div>`).join('');
+}
+function renderJobs(tab){
+  document.getElementById('jobGrid').innerHTML=JOBS[tab].map((j,i)=>`<div class="card tile" style="cursor:pointer" onclick="openJob('${tab}',${i})"><div class="body"><span class="tag">${tab==='social'?'社会招聘':'校园招聘'}</span><h3>${j.t}</h3><p>${j.dept} · ${j.loc} · ${j.pay}</p><p style="margin-top:10px;color:var(--c-gold)">查看详情并投递 →</p></div></div>`).join('');
+}
+function openJob(tab,i){
+  const j=JOBS[tab][i];
+  document.getElementById('jobCrumb').textContent=j.t;
+  document.getElementById('jobType').textContent=tab==='social'?'SOCIAL RECRUITMENT':'CAMPUS RECRUITMENT';
+  document.getElementById('jobTitle').textContent=j.t;
+  document.getElementById('jobMeta').textContent=`${j.dept} · ${j.loc} · ${j.pay}`;
+  document.getElementById('jobDuty').textContent=j.duty;
+  document.getElementById('jobReq').textContent=j.req;
+  document.getElementById('f-job').value=j.t;
+  document.getElementById('l-extra').textContent=j.extraL;
+  document.querySelector('#resumeForm [name=extra]').placeholder=j.extraP;
+  go('job');
+}
+
+/* filters */
+function filterProd(btn,cat){setTab(btn);document.getElementById('prodGrid').innerHTML=PRODUCTS.filter(p=>cat==='all'||p.s===cat).map(p=>cardHTML({...p,on:"go('product')"})).join('');}
+function filterCase(btn,tag){setTab(btn);document.getElementById('caseGrid').innerHTML=CASES.filter(c=>tag==='all'||c.tag===tag).map(c=>cardHTML({t:c.t,ph:c.ph,tag:c.tag,d:`${c.style} · ${c.space}`,on:"go('case')"})).join('');}
+function setTab(btn){[...btn.parentElement.children].forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+function switchNews(btn,tab){setTab(btn);renderNews(tab);}
+function switchRec(btn,tab){setTab(btn);renderJobs(tab);}
+function switchContact(btn,tab){
+  setTab(btn);
+  document.getElementById('apptForm').style.display=tab==='appt'?'block':'none';
+  document.getElementById('msgForm').style.display=tab==='msg'?'block':'none';
+}
+
+/* ===================== 路由 ===================== */
+const PAGES=['home','product','case','news','recruit','job','about','about-history','about-brand','contact'];
+const TOPMAP={home:'home',product:'product',case:'product',news:'news',recruit:'recruit',job:'recruit',about:'about','about-history':'about','about-brand':'about',contact:'about'};
+function go(route,tab){
+  PAGES.forEach(p=>document.getElementById('p-'+p).classList.toggle('on',p===route));
+  document.getElementById('menu').classList.remove('open');
+  // 顶部导航高亮
+  document.querySelectorAll('#menu>li').forEach(li=>li.classList.toggle('active',li.dataset.top===TOPMAP[route]));
+  // dropdown 当前项高亮
+  document.querySelectorAll('#menu .dropdown a').forEach(a=>a.classList.remove('cur'));
+  if(route==='news'&&tab){renderNews(tab);syncTab('#newsTabs',tab);}
+  if(route==='recruit'&&tab){renderJobs(tab);syncTab('#recTabs',tab);}
+  if(route==='contact'){switchContact(document.querySelector('#contactTabs [data-tab="appt"]'),'appt');document.querySelector('#contactTabs [data-tab="appt"]').classList.add('on');[...document.querySelectorAll('#contactTabs button')].forEach(b=>{if(b.dataset.tab!=='appt')b.classList.remove('on')});}
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+function syncTab(sel,tab){[...document.querySelectorAll(sel+' button')].forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));}
+function toggleDD(btn){const dd=btn.nextElementSibling;dd.style.opacity=dd.style.opacity==='1'?'0':'';dd.style.visibility=dd.style.visibility==='visible'?'hidden':'';}
+
+/* ===================== 轮播 ===================== */
+let slide=0,timer=null;
+function setSlide(i){slide=i;const s=document.querySelectorAll('#banner .slide');const d=document.querySelectorAll('#dots b');s.forEach((x,k)=>x.classList.toggle('on',k===i));d.forEach((x,k)=>x.classList.toggle('on',k===i));}
+function auto(){timer=setInterval(()=>setSlide((slide+1)%3),4500);}
+if(document.getElementById('banner'))auto();
+
+/* ===================== 验证码 ===================== */
+function rndCap(){const c=String.fromCharCode(65+Math.floor(Math.random()*26));return c+Math.floor(10+Math.random()*89);}
+let cap1='TP26',cap2='TP26';
+function genCap(){cap1=rndCap();document.getElementById('capBox').textContent=cap1;}
+function genCap2(){cap2=rndCap();document.getElementById('capBox2').textContent=cap2;}
+
+/* ===================== 校验 & 提交 ===================== */
+function phoneOK(v){return /^1[3-9]\d{9}$/.test(v);}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+function setErr(id,bad){document.getElementById(id).classList.toggle('invalid',bad);}
+
+document.getElementById('apptForm').addEventListener('submit',e=>{
+  e.preventDefault();const f=e.target;let ok=true;
+  setErr('a-name',!(ok=ok&&f.name.value.trim()));
+  setErr('a-phone',!(ok=ok&&phoneOK(f.phone.value.trim())));
+  const today=new Date();today.setHours(0,0,0,0);
+  const dv=f.date.value?new Date(f.date.value):null;
+  setErr('a-date',!(ok=ok&&dv&&dv>=today));
+  setErr('a-slot',!(ok=ok&&f.slot.value));
+  setErr('a-cap',!(ok=ok&&f.cap.value.trim().toUpperCase()===cap1));
+  if(!document.getElementById('apptAgree').checked){showToast('请先勾选同意隐私政策');return;}
+  if(ok){showToast('预约成功，工作人员将尽快与您联系');f.reset();genCap();}
+  else showToast('请检查标红项后重试');
+});
+document.getElementById('msgForm').addEventListener('submit',e=>{
+  e.preventDefault();const f=e.target;let ok=true;
+  setErr('m-name',!(ok=ok&&f.name.value.trim()));
+  setErr('m-contact',!(ok=ok&&f.contact.value.trim().length>=5));
+  setErr('m-content',!(ok=ok&&f.content.value.trim().length>=2));
+  setErr('m-cap',!(ok=ok&&f.cap.value.trim().toUpperCase()===cap2));
+  if(!document.getElementById('msgAgree').checked){showToast('请先勾选同意隐私政策');return;}
+  if(ok){showToast('留言已提交，客服将尽快回复');f.reset();genCap2();}
+  else showToast('请检查标红项后重试');
+});
+document.getElementById('resumeForm').addEventListener('submit',e=>{
+  e.preventDefault();const f=e.target;let ok=true;
+  setErr('f-name',!(ok=ok&&f.name.value.trim()));
+  setErr('f-phone',!(ok=ok&&phoneOK(f.phone.value.trim())));
+  const file=f.file.files[0];
+  if(file){const okT=/\.(pdf|doc|docx)$/i.test(file.name);const okS=file.size<=10*1024*1024;setErr('f-file',!(ok=ok&&okT&&okS));}
+  if(!document.getElementById('resumeAgree').checked){showToast('请先勾选同意隐私政策');return;}
+  if(ok){showToast('投递成功，招聘专员将尽快查看');f.reset();}
+  else showToast('请检查标红项后重试');
+});
+
+/* 移动端菜单 */
+document.getElementById('burger').addEventListener('click',()=>document.getElementById('menu').classList.toggle('open'));
+
+/* init */
+renderGrid();renderNews('corp');renderJobs('social');genCap();genCap2();
+</script>
+</body>
+</html>

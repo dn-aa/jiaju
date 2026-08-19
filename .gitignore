@@ -1,0 +1,40 @@
+# ===== Node =====
+node_modules/
+dist/
+build/
+*.local
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ===== Env / Secrets =====
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ===== IDE / OS =====
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ===== 本地数据与工具（便携版 MySQL/Redis 等）=====
+.tools/
+deploy/data/
+logs/
+uploads/
+
+# ===== 远程镜像仓库（github_src/ 独立管理，不纳入主仓库）=====
+github_src/
+.workbuddy/

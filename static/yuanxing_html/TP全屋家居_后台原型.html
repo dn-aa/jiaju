@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TP 全屋家居 · 后台管理系统（产品原型）</title>
+<style>
+  :root{
+    --ink:#1C1917; --gold:#B0894F; --gold-d:#97763F; --bg:#FAFAF9; --soft:#F5F3EF; --line:#E7E5E4; --surface:#fff;
+    --ff-disp:"Cormorant Garamond","Noto Serif SC",Georgia,serif;
+    --ff-body:"Montserrat","Noto Sans SC",-apple-system,"Segoe UI",sans-serif;
+    --primary:#1C1917; --primary-hover:#2b2723; --primary-active:#000c17;
+    --sider:#1C1917; --sider-hover:#B0894F; --sider-sub:#14110F;
+    --layout-bg:#FAFAF9; --card-bg:#fff; --border:#E7E5E4; --border-strong:#d9d9d9;
+    --text:#1f1f1f; --text-secondary:rgba(0,0,0,.65); --text-tertiary:rgba(0,0,0,.45);
+    --success:#52c41a; --warning:#faad14; --error:#ff4d4f; --processing:#B0894F;
+    --radius:8px;
+    --shadow:0 1px 2px 0 rgba(0,0,0,.03),0 1px 6px -1px rgba(0,0,0,.02),0 2px 4px 0 rgba(0,0,0,.02);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;
+    font-size:14px;color:var(--text);background:var(--layout-bg); -webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;cursor:pointer;}
+  /* ---------- Login ---------- */
+  #login{position:fixed;inset:0;background:linear-gradient(135deg,#211c17 0%,#1C1917 55%,#0d0b09 100%);display:flex;align-items:center;justify-content:center;z-index:1000;}
+  .login-card{width:400px;background:#fff;border-radius:14px;padding:44px 40px;box-shadow:0 12px 40px rgba(0,0,0,.35);}
+  .brand-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:6px;}
+  .brand-mark{width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,#1C1917,#3a332c);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;border:1px solid var(--gold);}
+  .brand-name{font-size:18px;font-weight:700;color:#1C1917;letter-spacing:.5px;}
+  .login-sub{text-align:center;color:var(--text-tertiary);margin:4px 0 24px;font-size:13px;}
+  .field{margin-bottom:18px;}
+  .field label{display:block;margin-bottom:6px;color:var(--text-secondary);font-size:13px;}
+  .input{width:100%;height:40px;border:1px solid var(--border-strong);border-radius:6px;padding:0 11px;font-size:14px;outline:none;transition:.2s;background:#fff;}
+  .input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(176,137,79,.14);}
+  .btn{width:100%;height:40px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-size:15px;font-weight:500;transition:.2s;}
+  .btn:hover{background:var(--primary-hover);}
+  .btn:active{background:var(--primary-active);}
+  .login-hint{margin-top:18px;font-size:12px;color:var(--text-tertiary);line-height:1.7;border-top:1px dashed var(--border);padding-top:14px;}
+  .role-quick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+  .role-chip{border:1px solid var(--border-strong);background:#fafafa;border-radius:6px;padding:8px 6px;text-align:center;font-size:12px;color:var(--text-secondary);transition:.15s;}
+  .role-chip:hover{border-color:var(--gold);color:var(--gold);background:var(--soft);}
+  /* ---------- Layout ---------- */
+  #app{display:none;height:100vh;}
+  .sider{position:fixed;left:0;top:0;bottom:0;width:220px;background:var(--sider);transition:width .2s;z-index:20;overflow:hidden;}
+  .sider.collapsed{width:80px;}
+  .sider-logo{height:64px;display:flex;align-items:center;gap:10px;padding:0 18px;color:#fff;overflow:hidden;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.08);}
+  .sider-logo .mark{width:32px;height:32px;border-radius:7px;background:linear-gradient(135deg,#1C1917,#3a332c);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;border:1px solid var(--gold);flex:0 0 auto;}
+  .sider-logo .name{font-weight:600;font-size:15px;letter-spacing:.5px;}
+  .sider-logo .sub{font-size:11px;color:rgba(255,255,255,.45);}
+  .menu{padding:8px 0;overflow-y:auto;height:calc(100% - 64px);}
+  .menu-item{color:rgba(255,255,255,.75);padding:11px 24px;display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;white-space:nowrap;transition:.15s;user-select:none;}
+  .menu-item:hover{color:#fff;background:rgba(255,255,255,.08);}
+  .menu-item.active{color:#fff;background:var(--primary);}
+  .menu-item .ico{width:16px;text-align:center;flex:0 0 auto;}
+  .menu-group>.menu-item{font-weight:500;}
+  .menu-sub{background:var(--sider-sub);overflow:hidden;}
+  .menu-sub .menu-item{padding-left:52px;font-size:13px;}
+  .sider.collapsed .label,.sider.collapsed .sub{display:none;}
+  .sider.collapsed .menu-sub{display:none;}
+  .sider.collapsed .sider-logo .name,.sider.collapsed .sider-logo .sub{display:none;}
+  .main{margin-left:220px;margin-top:0;transition:margin-left .2s;display:flex;flex-direction:column;height:100vh;}
+  .main.collapsed{margin-left:80px;}
+  .header{height:64px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:10;}
+  .header-left{display:flex;align-items:center;gap:16px;}
+  .collapse-btn{border:none;background:transparent;font-size:18px;color:var(--text-secondary);padding:4px 8px;border-radius:6px;}
+  .collapse-btn:hover{background:#f5f5f5;}
+  .breadcrumb{color:var(--text-tertiary);font-size:13px;}
+  .breadcrumb b{color:var(--text);font-weight:500;}
+  .header-right{display:flex;align-items:center;gap:14px;}
+  .role-badge{font-size:12px;padding:3px 10px;border-radius:12px;background:var(--soft);color:var(--gold);border:1px solid #e8d3ad;}
+  .user-box{display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 8px;border-radius:6px;}
+  .user-box:hover{background:#f5f5f5;}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;overflow:hidden;flex:0 0 auto;}
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+  /* ---------- 个人中心 ---------- */
+  .user-card{display:flex;align-items:center;padding:4px 0 16px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+  .uc-avatar{width:64px;height:64px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;flex:0 0 auto;box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer;position:relative;border:2px solid #fff;}
+  .uc-avatar img{width:100%;height:100%;object-fit:cover;}
+  .uc-avatar .cam{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid #fff;}
+  .uc-meta{margin-left:14px;}
+  .uc-meta .n{font-size:16px;font-weight:600;}
+  .uc-meta .r{font-size:12px;color:var(--text-tertiary);margin-top:3px;}
+  .field .err{color:var(--error);font-size:12px;margin-top:4px;display:none;}
+  .field .err.show{display:block;}
+  .pwd-rule{font-size:12px;color:var(--text-tertiary);margin-top:8px;line-height:1.7;}
+  .content{flex:1;overflow-y:auto;padding:28px 32px;width:100%;max-width:1320px;margin:0 auto;}
+  .page-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:24px 28px;width:100%;}
+  .page-title{font-size:22px;font-weight:600;margin:0 0 8px;letter-spacing:.01em;}
+  .page-desc{color:var(--text-tertiary);font-size:13px;margin-bottom:22px;line-height:1.6;}
+  /* ---------- Toolbar ---------- */
+  .toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:20px;}
+  .toolbar .spacer{flex:1;}
+  .search-input{height:32px;width:220px;border:1px solid var(--border-strong);border-radius:6px;padding:0 11px;outline:none;}
+  .search-input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(176,137,79,.14);}
+  .select{height:32px;border:1px solid var(--border-strong);border-radius:6px;padding:0 8px;background:#fff;outline:none;color:var(--text-secondary);}
+  .btn-sm{height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--border-strong);background:#fff;color:var(--text-secondary);font-size:13px;transition:.15s;}
+  .btn-sm:hover{border-color:var(--primary);color:var(--primary);}
+  .btn-sm.primary{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .btn-sm.primary:hover{background:var(--primary-hover);color:#fff;}
+  .btn-sm.danger{color:var(--error);border-color:#ffccc7;}
+  .btn-sm.danger:hover{background:#fff1f0;color:var(--error);border-color:var(--error);}
+  /* ---------- Table ---------- */
+  table.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+  table.tbl th{background:#fafafa;text-align:left;padding:14px 16px;color:var(--text-secondary);font-weight:500;border-bottom:1px solid var(--border);white-space:nowrap;font-size:13px;}
+  table.tbl td{padding:14px 16px;border-bottom:1px solid var(--border);color:var(--text);font-size:14px;}
+  table.tbl tr:hover td{background:#fafafa;}
+  .tbl td .link{margin-right:10px;display:inline-block;}
+  .tbl td .link:last-child{margin-right:0;}
+  .tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:12px;line-height:22px;border:1px solid transparent;}
+  .tag-success{color:var(--success);background:#f6ffed;border-color:#b7eb8f;}
+  .tag-processing{color:var(--gold);background:var(--soft);border-color:#e8d3ad;}
+  .tag-warning{color:#d46b08;background:#fffbe6;border-color:#ffe58f;}
+  .tag-error{color:var(--error);background:#fff1f0;border-color:#ffccc7;}
+  .tag-default{color:var(--text-secondary);background:#fafafa;border-color:#d9d9d9;}
+  .tag-gold{color:var(--gold);background:#fbf5ec;border-color:#e8d3ad;}
+  .link{color:var(--primary);cursor:pointer;}
+  .link:hover{text-decoration:underline;}
+  .muted{color:var(--text-tertiary);}
+  /* ---------- stat cards ---------- */
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:22px;}
+  .stat-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px;border-left:3px solid var(--primary);}
+  .stat-card .k{color:var(--text-tertiary);font-size:13px;margin-bottom:10px;}
+  .stat-card .v{font-size:28px;font-weight:600;color:#1C1917;}
+  .stat-card .trend{font-size:12px;margin-top:6px;color:var(--success);}
+  .stat-card.gold{border-left-color:var(--gold);}
+  .stat-card.green{border-left-color:var(--success);}
+  /* ---------- tabs ---------- */
+  .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:22px;gap:4px;}
+  .tab{padding:11px 18px;cursor:pointer;color:var(--text-secondary);border-bottom:2px solid transparent;font-size:14px;}
+  .tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:500;}
+  /* ---------- drawer & modal ---------- */
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:none;}
+  .mask.show{display:block;}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:440px;background:#fff;z-index:60;box-shadow:-4px 0 16px rgba(0,0,0,.12);transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;}
+  .drawer.show{transform:translateX(0);}
+  .drawer-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .drawer-head .t{font-size:16px;font-weight:600;}
+  .drawer-body{padding:20px;overflow-y:auto;flex:1;}
+  .drawer-foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+  .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);z-index:60;background:#fff;border-radius:10px;width:560px;max-width:92vw;box-shadow:0 8px 30px rgba(0,0,0,.2);opacity:0;pointer-events:none;transition:.18s;max-height:88vh;display:flex;flex-direction:column;}
+  .modal.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto;}
+  .modal-head{padding:16px 22px;border-bottom:1px solid var(--border);font-size:16px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+  .modal-body{padding:20px 22px;overflow-y:auto;}
+  .modal-foot{padding:12px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+  .x{border:none;background:transparent;font-size:18px;color:var(--text-tertiary);cursor:pointer;}
+  .x:hover{color:var(--text);}
+  .form-row{margin-bottom:18px;}
+  .form-row label{display:block;margin-bottom:8px;font-size:13px;color:var(--text-secondary);}
+  .form-row label .req{color:var(--error);margin-right:3px;}
+  .form-input{width:100%;height:36px;border:1px solid var(--border-strong);border-radius:6px;padding:0 11px;outline:none;font-size:14px;}
+  .form-input:focus,.form-textarea:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(176,137,79,.14);}
+  .form-textarea{width:100%;min-height:92px;border:1px solid var(--border-strong);border-radius:6px;padding:8px 11px;outline:none;resize:vertical;font-family:inherit;font-size:14px;}
+  .seg{display:inline-flex;border:1px solid var(--border-strong);border-radius:6px;overflow:hidden;}
+  .seg button{border:none;background:#fff;padding:6px 14px;font-size:13px;color:var(--text-secondary);}
+  .seg button.on{background:var(--primary);color:#fff;}
+  .upload{border:1px dashed var(--border-strong);border-radius:6px;padding:18px;text-align:center;color:var(--text-tertiary);background:#fafafa;cursor:pointer;transition:.15s;}
+  .upload:hover{border-color:var(--gold);color:var(--gold);background:var(--soft);}
+  /* ---------- misc ---------- */
+  .row{display:flex;gap:12px;flex-wrap:wrap;}
+  .kv{font-size:13px;line-height:2.1;}
+  .kv .k{color:var(--text-tertiary);display:inline-block;width:84px;}
+  .timeline-item{border-left:2px solid var(--border-strong);padding:0 0 18px 16px;position:relative;margin-left:6px;}
+  .timeline-item::before{content:"";position:absolute;left:-5px;top:4px;width:8px;height:8px;border-radius:50%;background:var(--primary);}
+  .timeline-item .yr{font-weight:600;color:#1C1917;}
+  .perm-tree{font-size:13px;}
+  .perm-tree .mod{border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:10px;}
+  .perm-tree .mod .mh{font-weight:600;margin-bottom:8px;}
+  .chk{display:inline-flex;align-items:center;gap:5px;margin-right:14px;margin-bottom:6px;color:var(--text-secondary);}
+  .pagination{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;align-items:center;color:var(--text-tertiary);font-size:13px;}
+  .pg{border:1px solid var(--border-strong);background:#fff;border-radius:6px;padding:5px 12px;cursor:pointer;color:var(--text-secondary);}
+  .pg.on{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .empty{text-align:center;color:var(--text-tertiary);padding:48px 0;}
+  .empty .ic{font-size:40px;opacity:.4;}
+  .no-perm{text-align:center;padding:80px 0;color:var(--text-tertiary);}
+  .no-perm .ic{font-size:48px;opacity:.3;display:block;margin-bottom:12px;}
+  .chart-box{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px;margin-bottom:18px;}
+  .chart-box h4{margin:0 0 14px;font-size:15px;}
+  .note{background:var(--soft);border:1px solid #e8d3ad;border-radius:6px;padding:12px 14px;font-size:12px;color:#8a6d3b;margin-bottom:18px;line-height:1.7;}
+  .scope-tip{display:inline-block;background:#fbf5ec;border:1px solid #e8d3ad;color:#8a6d3b;border-radius:4px;padding:3px 10px;font-size:12px;margin-left:14px;}
+  @media (max-width:768px){.stat-row{grid-template-columns:1fr 1fr;}.sider{width:0;}.main{margin-left:0;}}
+  .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#fff;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.15);padding:10px 18px;z-index:200;display:flex;align-items:center;gap:8px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;}
+  .toast.show{opacity:1;top:90px;}
+  .toast .ic{color:var(--success);}
+
+  /* ============ 与「墨色 + 香槟金」前台风格统一 ============ */
+  body{font-family:var(--ff-body);}
+  h1,h2,h3,h4,.page-title,.modal-head,.drawer-head .t,.chart-box h4,.brand-name,.login-sub{font-family:var(--ff-disp);letter-spacing:.01em;}
+  .page-title{border-left:3px solid var(--gold);padding-left:12px;}
+  /* 蓝色遗留 → 香槟金 / 墨色 */
+  .role-badge{background:var(--soft);color:var(--gold);border-color:#e8d3ad;}
+  .role-chip:hover{border-color:var(--gold);color:var(--gold);background:var(--soft);}
+  .search-input:focus,.form-input:focus,.form-textarea:focus,.input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(176,137,79,.14);}
+  .btn-sm:hover{border-color:var(--gold);color:var(--gold);}
+  .tag-processing{color:var(--gold);background:var(--soft);border-color:#e8d3ad;}
+  .login-hint{border-top-color:var(--line);}
+  .note{background:var(--soft);border-color:#e8d3ad;color:#8a6d3b;}
+  /* 侧边菜单选中态 → 香槟金（在墨色侧栏上醒目且对比达标） */
+  .menu-item.active{background:rgba(176,137,79,.16);color:var(--gold);box-shadow:inset 3px 0 0 var(--gold);}
+  /* 登录页渐变 → 墨色基调（呼应前台高端质感） */
+  #login{background:linear-gradient(135deg,#211c17 0%,#1C1917 55%,#0d0b09 100%);}
+  .tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+  .timeline-item::before{background:var(--gold);}
+  /* 头像 / 强调点缀 */
+  .avatar,.uc-avatar{background:linear-gradient(135deg,#2b2723,#6b6256);}
+  .stat-card{border-left-color:var(--gold);}
+  .stat-card.green{border-left-color:var(--success);}
+  .scope-tip{background:var(--soft);}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login">
+  <div class="login-card">
+    <div class="brand-logo">
+      <div class="brand-mark">TP</div>
+      <div style="text-align:left;">
+        <div class="brand-name">TP 全屋家居</div>
+        <div style="font-size:11px;color:var(--text-tertiary);">后台管理系统</div>
+      </div>
+    </div>
+    <div class="login-sub">BR-1 登录与权限 · 账号密码登录</div>
+    <div class="field">
+      <label>账号</label>
+      <input class="input" id="acc" value="admin" />
+    </div>
+    <div class="field">
+      <label>密码</label>
+      <input class="input" id="pwd" type="password" value="123456" placeholder="请输入密码" />
+    </div>
+    <button class="btn" onclick="doLogin()">登 录</button>
+    <div class="login-hint">
+      演示角色快速进入（RBAC 权限隔离见 §8 角色权限矩阵）：
+      <div class="role-quick">
+        <div class="role-chip" onclick="quickLogin('admin')">超级管理员</div>
+        <div class="role-chip" onclick="quickLogin('editor')">内容编辑</div>
+        <div class="role-chip" onclick="quickLogin('cs')">客服</div>
+        <div class="role-chip" onclick="quickLogin('hr')">招聘专员</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <aside class="sider" id="sider">
+    <div class="sider-logo">
+      <div class="mark">TP</div>
+      <div>
+        <div class="name">TP 全屋家居</div>
+        <div class="sub">后台管理系统</div>
+      </div>
+    </div>
+    <nav class="menu" id="menu"></nav>
+  </aside>
+
+  <div class="main" id="main">
+    <header class="header">
+      <div class="header-left">
+        <button class="collapse-btn" onclick="toggleCollapse()">☰</button>
+        <div class="breadcrumb" id="crumb">工作台</div>
+      </div>
+      <div class="header-right">
+        <span class="role-badge" id="roleBadge">超级管理员</span>
+        <div class="user-box" onclick="showUserMenu()">
+          <div class="avatar" id="avatar">A</div>
+          <span id="userName">超级管理员</span>
+        </div>
+      </div>
+    </header>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeOverlays()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head"><span class="t" id="drawerTitle">详情</span><button class="x" onclick="closeOverlays()">✕</button></div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot" id="drawerFoot"></div>
+</div>
+<div class="modal" id="modal">
+  <div class="modal-head"><span id="modalTitle">标题</span><button class="x" onclick="closeOverlays()">✕</button></div>
+  <div class="modal-body" id="modalBody"></div>
+  <div class="modal-foot" id="modalFoot"></div>
+</div>
+<div class="toast" id="toast"><span class="ic">✓</span><span id="toastMsg">操作成功</span></div>
+<input type="file" id="avatarInput" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none" onchange="onAvatarChange(event)" />
+
+<script>
+/* ===================== 角色与权限（PRD §2.2 / §8） ===================== */
+const ROLES = {
+  admin:{name:'超级管理员', avatar:'A', menu:['dashboard','content','recruit','lead','system'],
+    content:['product','case','news','page'], recruit:['job','resume'], lead:['appointment','message'], system:['account','role','log'],
+    dashboardScope:'all'},
+  editor:{name:'内容编辑', avatar:'E', menu:['content'],
+    content:['product','case','news','page']},
+  cs:{name:'客服', avatar:'C', menu:['dashboard','lead'], lead:['appointment','message'], dashboardScope:'cs'},
+  hr:{name:'招聘专员', avatar:'H', menu:['dashboard','recruit'], recruit:['job','resume'], dashboardScope:'hr'},
+};
+const MENU_DEF = {
+  dashboard:{label:'工作台', ico:'📊'},
+  content:{label:'内容管理', ico:'📁', children:['product','case','news','page']},
+  product:{label:'产品管理'},
+  case:{label:'案例管理'},
+  news:{label:'新闻管理'},
+  page:{label:'页面内容 / Banner'},
+  recruit:{label:'招聘管理', ico:'💼', children:['job','resume']},
+  job:{label:'职位管理'},
+  resume:{label:'简历投递管理'},
+  lead:{label:'线索管理', ico:'📨', children:['appointment','message']},
+  appointment:{label:'在线预约管理'},
+  message:{label:'留言咨询管理'},
+  system:{label:'系统管理', ico:'⚙️', children:['account','role','log']},
+  account:{label:'账号管理'},
+  role:{label:'角色管理'},
+  log:{label:'操作日志'},
+};
+/* §8 数据看板角色数据维度 */
+const DASH_SCOPE = {
+  all:['appointment','message','resume'],
+  cs:['appointment','message'],
+  hr:['resume'],
+};
+
+let state = {role:'admin', view:'dashboard', collapsed:false, subView:null, avatarImg:null};
+
+/* ============ 模块列表数据（原型演示数据，支持编辑/状态切换持久化） ============ */
+const P_DATA=[
+  ['云隐布艺沙发','客厅','3','上架'],
+  ['胡桃木餐桌','餐厅','1','上架'],
+  ['简奢主卧床','卧室','2','上架'],
+  ['书香书柜','书房','5','下架'],
+  ['全屋定制·现代极简','全屋定制','0','上架'],
+];
+const C_DATA=[
+  ['麓湖·现代极简平层','客户实景','现代','客厅','128㎡','上架'],
+  ['云隐别墅设计方案','设计方案','轻奢','全屋','320㎡','上架'],
+  ['书香门第三居','客户实景','新中式','书房','98㎡','下架'],
+];
+const N_DATA=[
+  ['TP 全屋家居获 2026 红点设计大奖','企业新闻','2026-08-12','品牌部','已发布'],
+  ['行业观察：2026 高端定制家居趋势','行业资讯','2026-08-09','编辑部','已发布'],
+  ['TP 夏季新品发布会圆满落幕','企业新闻','2026-08-05','品牌部','草稿'],
+];
+const J_DATA=[
+  ['全屋定制设计师','社会招聘','设计部','上海','20-35K','招聘中'],
+  ['空间搭配顾问','社会招聘','销售部','北京','12-20K','招聘中'],
+  ['管培生（家居设计方向）','校园招聘','人力部','全国','面议','已暂停'],
+];
+const B_DATA=[
+  ['首页轮播-1 现代极简','/home','1','上线','2026-08-20'],
+  ['首页轮播-2 轻奢样板间','/case','2','上线','—'],
+  ['品牌活动-Banner','/news','3','下线','—'],
+];
+const H_DATA=[
+  ['2009','TP 全屋家居品牌成立'],
+  ['2015','建成首个智能制造基地'],
+  ['2020','获「中国高端定制家居十强」'],
+  ['2026','红点设计大奖'],
+];
+const A_DATA=[
+  ['admin','超级管理员','超级管理员','启用'],
+  ['editor01','内容编辑','内容编辑','启用'],
+  ['cs01','客服小李','客服','启用'],
+  ['hr01','招聘专员王','招聘专员','禁用'],
+];
+const SERIES=[['客厅','3',1,'启用'],['卧室','2',2,'启用'],['书房','1',3,'启用'],['全屋定制','5',4,'启用']];
+let editing={kind:null,idx:null};
+
+/* ===================== 登录 ===================== */
+function doLogin(){
+  const acc=document.getElementById('acc').value.trim();
+  if(!acc){toast('请输入账号',true);return;}
+  enter('admin'); // 演示：任意账号以超级管理员进入
+}
+function quickLogin(r){ state.role=r; enter(r); }
+function enter(r){
+  state.role=r; state.view = (r==='editor')?'product':'dashboard'; state.subView=null; state.avatarImg=null;
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='flex';
+  renderUser();
+  renderMenu(); render();
+}
+/* 渲染顶部用户信息（账号名 + 角色徽标 + 头像，头像支持上传图片） */
+function renderUser(){
+  const r=ROLES[state.role];
+  document.getElementById('roleBadge').textContent=r.name;
+  document.getElementById('userName').textContent=r.name;
+  const av=document.getElementById('avatar');
+  av.innerHTML = state.avatarImg ? `<img src="${state.avatarImg}" alt="">` : r.avatar;
+}
+function logout(){ location.reload(); }
+/* 个人中心：头像上传 + 修改密码 + 退出登录 */
+function showUserMenu(){
+  const r=ROLES[state.role];
+  const avHtml = state.avatarImg ? `<img src="${state.avatarImg}" alt="">` : r.avatar;
+  openModal('个人中心', `
+    <div class="user-card">
+      <div class="uc-avatar" onclick="document.getElementById('avatarInput').click()" title="点击上传头像">
+        ${avHtml}<span class="cam">✎</span>
+      </div>
+      <div class="uc-meta">
+        <div class="n">${r.name}</div>
+        <div class="r">${state.role==='admin'?'admin':state.role} · ${r.name}</div>
+      </div>
+    </div>
+    <div class="kv">
+      <div><span class="k">账号</span>${state.role==='admin'?'admin':state.role}</div>
+      <div><span class="k">当前角色</span>${r.name}</div>
+    </div>
+    <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn-sm" onclick="document.getElementById('avatarInput').click()">🖼️ 上传头像</button>
+      <button class="btn-sm" onclick="openChangePwd()">🔒 修改密码</button>
+    </div>
+    <div class="pwd-rule">头像支持 JPG / PNG / GIF / WebP，大小不超过 2MB；修改密码需输入原密码验证（详见 PRD BR-1）。</div>
+  `, `<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm danger" onclick="logout()">退出登录</button>`);
+}
+/* 头像上传：校验类型与大小，预览并同步到顶部头像 */
+function onAvatarChange(e){
+  const f=e.target.files && e.target.files[0];
+  if(!f){return;}
+  if(!/^image\//.test(f.type)){ toast('请选择图片文件', true); e.target.value=''; return; }
+  if(f.size > 2*1024*1024){ toast('头像图片不能超过 2MB', true); e.target.value=''; return; }
+  const rd=new FileReader();
+  rd.onload=function(){
+    state.avatarImg=rd.result;
+    renderUser();
+    const uc=document.querySelector('.uc-avatar'); // 个人中心仍开时同步刷新
+    if(uc) uc.innerHTML = state.avatarImg ? `<img src="${state.avatarImg}" alt="">` : ROLES[state.role].avatar;
+    toast('头像已更新');
+  };
+  rd.readAsDataURL(f);
+  e.target.value='';
+}
+/* 修改密码弹窗 */
+function openChangePwd(){
+  openModal('修改密码', `
+    <div class="field">
+      <label>原密码</label>
+      <input class="input" id="op-old" type="password" placeholder="请输入当前密码" />
+      <div class="err" id="op-old-err">请输入原密码</div>
+    </div>
+    <div class="field">
+      <label>新密码</label>
+      <input class="input" id="op-new" type="password" placeholder="6-20 位，建议字母 + 数字组合" />
+      <div class="err" id="op-new-err">新密码至少 6 位</div>
+    </div>
+    <div class="field">
+      <label>确认新密码</label>
+      <input class="input" id="op-conf" type="password" placeholder="再次输入新密码" />
+      <div class="err" id="op-conf-err">两次输入的新密码不一致</div>
+    </div>
+    <div class="pwd-rule">密码安全建议：长度 6-20 位，避免与账号相同或纯数字；正式上线由后端以 bcrypt 等强哈希存储（PRD BR-1 / §9 账号表）。</div>
+  `, `<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm primary" onclick="submitChangePwd()">保存</button>`);
+}
+function submitChangePwd(){
+  const old=document.getElementById('op-old').value.trim();
+  const nw=document.getElementById('op-new').value;
+  const conf=document.getElementById('op-conf').value;
+  let ok=true;
+  const setErr=(id,msg,on)=>{const el=document.getElementById(id); if(on){el.textContent=msg;el.classList.add('show');ok=false;}else{el.classList.remove('show');}};
+  setErr('op-old-err','请输入原密码', !old);
+  setErr('op-new-err','新密码至少 6 位', nw.length<6);
+  setErr('op-conf-err','两次输入的新密码不一致', conf!==nw);
+  if(!ok) return;
+  closeOverlays();
+  toast('密码修改成功（演示）');
+}
+
+/* ===================== 菜单渲染（按角色过滤） ===================== */
+function renderMenu(){
+  const r=ROLES[state.role]; const el=document.getElementById('menu'); let h='';
+  const allowed=r.menu;
+  allowed.forEach(k=>{
+    const def=MENU_DEF[k];
+    if(def.children){
+      const open = (state.view && (def.children.includes(state.view) || def.children.includes(state.subView)));
+      h+=`<div class="menu-group">
+        <div class="menu-item ${open?'active':''}" onclick="toggleGroup('${k}')">
+          <span class="ico">${def.ico}</span><span class="label">${def.label}</span><span class="sub" style="margin-left:auto;font-size:10px;">▾</span>
+        </div>
+        <div class="menu-sub" id="sub-${k}" style="${open?'':'display:none'}">
+          ${def.children.filter(c=> (r[k]?r[k].includes(c):true)).map(c=>`
+            <div class="menu-item ${state.view===c?'active':''}" onclick="go('${c}')"><span class="label">${MENU_DEF[c].label}</span></div>
+          `).join('')}
+        </div>
+      </div>`;
+    } else {
+      h+=`<div class="menu-item ${state.view===k?'active':''}" onclick="go('${k}')"><span class="ico">${def.ico}</span><span class="label">${def.label}</span></div>`;
+    }
+  });
+  el.innerHTML=h;
+}
+function toggleGroup(k){
+  const s=document.getElementById('sub-'+k);
+  if(s) s.style.display = (s.style.display==='none')?'block':'none';
+}
+function go(v){
+  state.view=v; state.subView=null;
+  // 默认子视图
+  if(['content','recruit','lead','system'].includes(v)){ state.subView = (ROLES[state.role][v]||MENU_DEF[v].children)[0]; }
+  renderMenu(); render();
+}
+function breadcrumb(){
+  const map = {dashboard:'工作台',product:'产品管理',case:'案例管理',news:'新闻管理',page:'页面内容 / Banner',
+    job:'职位管理',resume:'简历投递管理',appointment:'在线预约管理',message:'留言咨询管理',
+    account:'账号管理',role:'角色管理',log:'操作日志'};
+  const parent={product:'内容管理',case:'内容管理',news:'内容管理',page:'内容管理',
+    job:'招聘管理',resume:'招聘管理',appointment:'线索管理',message:'线索管理',
+    account:'系统管理',role:'系统管理',log:'系统管理'};
+  if(state.view==='dashboard'){document.getElementById('crumb').innerHTML='<b>工作台</b>';return;}
+  const p=parent[state.view]||'';
+  document.getElementById('crumb').innerHTML = p? `${p} / <b>${map[state.view]}</b>` : `<b>${map[state.view]}</b>`;
+}
+function toggleCollapse(){
+  state.collapsed=!state.collapsed;
+  document.getElementById('sider').classList.toggle('collapsed',state.collapsed);
+  document.getElementById('main').classList.toggle('collapsed',state.collapsed);
+}
+
+/* ===================== 主渲染 ===================== */
+function render(){
+  breadcrumb();
+  const v = state.subView||state.view;
+  const map={
+    dashboard:viewDashboard, product:viewProduct, case:viewCase, news:viewNews, page:viewPage,
+    job:viewJob, resume:viewResume, appointment:viewAppointment, message:viewMessage,
+    account:viewAccount, role:viewRole, log:viewLog,
+  };
+  const fn = map[v] || (()=>'<div class="no-perm"><span class="ic">🔒</span>当前角色无此模块权限</div>');
+  document.getElementById('content').innerHTML = fn();
+  document.getElementById('content').scrollTop=0;
+}
+
+/* ===================== BR-9 数据看板 ===================== */
+function viewDashboard(){
+  const scope = DASH_SCOPE[ROLES[state.role].dashboardScope];
+  const cards=[
+    {key:'appointment',k:'预约量（线索）',v:128,t:'较上周 +12%',cls:''},
+    {key:'message',k:'留言量（线索）',v:64,t:'较上周 +5%',cls:'gold'},
+    {key:'resume',k:'简历投递量',v:37,t:'较上周 +9%',cls:'green'},
+  ].filter(c=>scope.includes(c.key));
+  if(!scope.length) return '<div class="no-perm"><span class="ic">📊</span>当前角色（'+ROLES[state.role].name+'）无数据看板权限（§8）</div>';
+  const scopeLabel = scope.map(s=>({appointment:'预约',message:'留言',resume:'简历'}[s])).join(' + ');
+  return `
+  <div class="page-card">
+    <h2 class="page-title">工作台 · 线索量看板 <span class="scope-tip">数据范围：${scopeLabel}</span></h2>
+    <div class="page-desc">BR-9 仅统计「线索量」（预约/留言/简历，来自数据库，无需前端埋点）。按角色限定数据维度（§8）。</div>
+    <div class="note">说明：看板展示各线索表<b>原始条数（不去重）</b>；北极星指标「有效线索数」去重口径为同一手机号在预约/留言/简历三类线索中合并计数（见 §12）。</div>
+    <div class="stat-row">
+      ${cards.map(c=>`<div class="stat-card ${c.cls}"><div class="k">${c.k}</div><div class="v">${c.v}</div><div class="trend">${c.t}</div></div>`).join('')}
+    </div>
+    <div class="chart-box">
+      <h4>线索趋势（按日）</h4>
+      ${lineChart()}
+    </div>
+    <div class="chart-box">
+      <h4>线索分类占比</h4>
+      ${barChart(scope)}
+    </div>
+    <div class="chart-box">
+      <h4>线索明细下钻（BR-9.2）</h4>
+      <table class="tbl"><thead><tr><th>线索类型</th><th>今日</th><th>本周</th><th>本月</th><th>操作</th></tr></thead><tbody>
+        ${[
+          ['预约',12,86,128],['留言',6,41,64],['简历',4,22,37]
+        ].filter(r=>scope.includes(r[0]==='预约'?'appointment':r[0]==='留言'?'message':'resume')).map(r=>`<tr>
+          <td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td>
+          <td><span class="link" onclick="drill('${r[0]==='预约'?'appointment':r[0]==='留言'?'message':'resume'}')">下钻明细</span></td></tr>`).join('')}
+      </tbody></table>
+    </div>
+  </div>`;
+}
+function drill(type){
+  const map={appointment:'appointment',message:'message',resume:'resume'};
+  go(map[type]);
+}
+function lineChart(){
+  const w=640,h=180,pts=[[0,140],[60,120],[120,128],[180,96],[240,108],[300,80],[360,90],[420,64],[480,72],[540,52],[600,60]];
+  const path=pts.map((p,i)=>(i?'L':'M')+p[0]+' '+p[1]).join(' ');
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:180px;">
+    <line x1="0" y1="${h-30}" x2="${w}" y2="${h-30}" stroke="#f0f0f0"/>
+    <path d="${path}" fill="none" stroke="#B0894F" stroke-width="2.5"/>
+    ${pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="#B0894F"/>`).join('')}
+    <text x="0" y="${h-10}" font-size="11" fill="#999">周一</text>
+    <text x="${w-34}" y="${h-10}" font-size="11" fill="#999">周日</text>
+  </svg>`;
+}
+function barChart(scope){
+  const data=[{appointment:['预约',128,'#B0894F']}, {message:['留言',64,'#B0894F']}, {resume:['简历',37,'#52c41a']}];
+  const items=data.filter(d=>{const k=Object.keys(d)[0];return scope.includes(k);}).map(d=>Object.values(d)[0]);
+  const max=128;
+  return `<div style="display:flex;gap:30px;align-items:flex-end;height:160px;padding:10px 20px;">
+    ${items.map(it=>`<div style="text-align:center;">
+      <div style="height:${it[1]/max*120}px;width:48px;background:${it[2]};border-radius:6px 6px 0 0;"></div>
+      <div style="margin-top:8px;font-size:13px;">${it[0]}</div>
+      <div style="font-size:12px;color:#999;">${it[1]}</div></div>`).join('')}
+  </div>`;
+}
+
+/* ===================== BR-2 产品管理 ===================== */
+function viewProduct(){
+  const tab = state.subView2||'product';
+  return `<div class="page-card">
+    <h2 class="page-title">产品管理 <span class="scope-tip">内容编辑可维护</span></h2>
+    <div class="page-desc">BR-2 产品系列 + 产品 + 图片管理（全部内容由后台配置，前台只读）。</div>
+    <div class="tabs">
+      <div class="tab ${tab==='product'?'active':''}" onclick="sub2('product')">产品</div>
+      <div class="tab ${tab==='series'?'active':''}" onclick="sub2('series')">产品系列</div>
+      <div class="tab ${tab==='img'?'active':''}" onclick="sub2('img')">图片管理</div>
+    </div>
+    ${tab==='product'?productTab():tab==='series'?seriesTab():imgTab()}
+  </div>`;
+}
+function sub2(t){state.subView2=t;render();}
+function productTab(){
+  const rows=P_DATA;
+  return `<div class="toolbar">
+    <input class="search-input" placeholder="搜索产品名称 / 系列"/>
+    <select class="select"><option>全部系列</option><option>客厅</option><option>卧室</option><option>书房</option><option>全屋定制</option></select>
+    <span class="spacer"></span>
+    <button class="btn-sm primary" onclick="openProductModal()">+ 新增产品</button>
+  </div>
+  <table class="tbl"><thead><tr><th>产品名称</th><th>所属系列</th><th>参数</th><th>排序</th><th>状态</th><th>操作</th></tr></thead><tbody>
+    ${rows.map((r,i)=>`<tr><td>${r[0]}</td><td><span class="tag tag-gold">${r[1]}</span></td><td class="muted">材质 / 尺寸 / 颜色</td><td>${r[2]}</td>
+      <td><span class="tag ${r[3]==='上架'?'tag-success':'tag-default'}">${r[3]}</span></td>
+      <td><span class="link" onclick="openEditProduct(${i})">编辑</span> &nbsp; <span class="link" onclick="toggleRowState(P_DATA,${i},3,'上架','下架','产品')">${r[3]==='上架'?'下架':'上架'}</span> &nbsp; <span class="link" style="color:var(--error)" onclick="del('产品','${r[0]}')">删除</span></td></tr>`).join('')}
+  </tbody></table>${pager()}`;
+}
+function seriesTab(){
+  const rows=SERIES;
+  return `<div class="toolbar"><span class="spacer"></span><button class="btn-sm primary" onclick="openSeriesModal()">+ 新增系列</button></div>
+  <table class="tbl"><thead><tr><th>系列名称</th><th>产品数</th><th>排序</th><th>状态</th><th>操作</th></tr></thead><tbody>
+    ${rows.map((r,i)=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="tag ${r[3]==='启用'?'tag-success':'tag-default'}">${r[3]}</span></td>
+      <td><span class="link" onclick="openSeriesModal('${r[0]}')">编辑</span> &nbsp; <span class="link" onclick="toggleRowState(SERIES,${i},3,'启用','停用','系列')">${r[3]==='启用'?'停用':'启用'}</span> &nbsp; <span class="link" style="color:var(--error)" onclick="del('系列','${r[0]}')">删除</span></td></tr>`).join('')}
+  </tbody></table>
+  <div class="note" style="margin-top:14px;">BR-2.1 关联产品时禁止删除系列（前置校验）。</div>`;
+}
+function openSeriesModal(name){
+  const edit=!!name;
+  openModal(edit?'编辑系列':'新增系列', `
+    <div class="form-row"><label><span class="req">*</span>系列名称</label><input class="form-input" id="s-name" value="${edit?name:''}"/></div>
+    <div class="form-row"><label>排序值</label><input class="form-input" id="s-sort" style="width:120px" value="${edit?'1':'0'}"/></div>
+    <div class="form-row"><label>状态</label><div class="seg" id="s-seg"><button class="on" onclick="segPick('s-seg',this)">启用</button><button onclick="segPick('s-seg',this)">停用</button></div></div>
+  `, `<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm primary" onclick="saveSeries('${edit}')">保存</button>`);
+}
+function saveSeries(isEdit){
+  const n=document.getElementById('s-name').value.trim();
+  if(!n){toast('请填写系列名称',true);return;}
+  toast('系列「'+n+'」已'+(isEdit==='true'?'保存':'新增'));
+  closeOverlays();
+}
+function imgTab(){
+  return `<div class="toolbar"><span class="spacer"></span><button class="btn-sm primary" onclick="pickImg(null,true)">上传图片</button></div>
+  <div class="row" id="imgRow">
+    ${[1,2,3,4,5,6].map(i=>`<div style="width:120px;height:120px;border:1px solid var(--border);border-radius:8px;background:linear-gradient(135deg,#f5f0e8,#e8ddd0);display:flex;align-items:center;justify-content:center;color:#bbb;cursor:pointer;transition:.15s;" onclick="pickImg(this)" title="点击选择文件替换">图${i}</div>`).join('')}
+  </div>
+  <div class="note" style="margin-top:14px;">BR-2.3 图片上传 / 裁剪 / 替换；点击图片格或「上传图片」按钮即可选择本地文件；NFR-2 校验类型与大小，防恶意文件。</div>`;
+}
+function openProductModal(name){
+  const edit=!!name;
+  openModal(edit?'编辑产品':'新增产品', `
+    <div class="form-row"><label><span class="req">*</span>产品名称</label><input class="form-input" id="p-name" value="${edit?name:''}"/></div>
+    <div class="form-row"><label><span class="req">*</span>所属系列</label><select class="form-input" id="p-series"><option>客厅</option><option>卧室</option><option>书房</option><option>全屋定制</option><option>餐厅</option></select></div>
+    <div class="form-row"><label>主图</label><label class="upload" style="display:block;text-align:center"><input type="file" accept="image/*" hidden onchange="onPickFile(event,'p-up-main')"/><span id="p-up-main">点击或拖拽上传（JPG/PNG，≤5MB）</span></label></div>
+    <div class="form-row"><label>图集</label><label class="upload" style="display:block;text-align:center"><input type="file" accept="image/*" multiple hidden onchange="onPickFile(event,'p-up-gal')"/><span id="p-up-gal">多图上传（可多选）</span></label></div>
+    <div class="form-row"><label>参数（键值对）</label>
+      <div class="row"><input class="form-input" style="width:120px" placeholder="材质"/><input class="form-input" placeholder="如：棉麻布艺"/></div>
+      <div class="row" style="margin-top:8px;"><input class="form-input" style="width:120px" placeholder="尺寸"/><input class="form-input" placeholder="如：3200×1800mm"/></div>
+      <div class="row" style="margin-top:8px;"><input class="form-input" style="width:120px" placeholder="颜色"/><input class="form-input" placeholder="如：云灰"/></div>
+    </div>
+    <div class="form-row"><label>描述（富文本）</label><textarea class="form-textarea" placeholder="支持图文富文本（XSS 过滤，见 §10.2）"></textarea></div>
+    <div class="form-row"><label>排序值</label><input class="form-input" id="p-sort" value="0" style="width:120px"/></div>
+    <div class="form-row"><label>状态</label>
+      <div class="seg" id="p-seg"><button class="on" onclick="segPick('p-seg',this)">上架</button><button onclick="segPick('p-seg',this)">下架</button></div></div>
+  `, `<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm primary" onclick="saveProduct()">保存</button>`);
+}
+function saveProduct(){
+  const name=document.getElementById('p-name').value.trim();
+  if(!name){toast('请填写产品名称',true);return;}
+  const series=document.getElementById('p-series').value;
+  const sort=document.getElementById('p-sort').value.trim()||'0';
+  const seg=document.querySelector('#p-seg button.on');
+  const st=seg?seg.textContent:'上架';
+  if(editing.kind==='product'&&editing.idx!=null){
+    const r=P_DATA[editing.idx];
+    r[0]=name;r[1]=series;r[2]=sort;r[3]=st;
+    toast('产品「'+name+'」已保存');
+  }else{
+    P_DATA.push([name,series,sort,st]);
+    toast('产品「'+name+'」已新增');
+  }
+  editing={kind:null,idx:null};
+  closeOverlays();render();
+}
+function toggleStatus(n){ toast(n+' 状态已切换'); }
+
+/* ===================== BR-3 案例管理 ===================== */
+function viewCase(){
+  const tab=state.subView2||'list';
+  const rows=C_DATA;
+  return `<div class="page-card"><h2 class="page-title">案例管理 <span class="scope-tip">内容编辑可维护</span></h2>
+    <div class="page-desc">BR-3 案例 + 风格/空间标签字典维护。</div>
+    <div class="tabs">
+      <div class="tab ${tab==='list'?'active':''}" onclick="sub2('list')">案例列表</div>
+      <div class="tab ${tab==='tags'?'active':''}" onclick="sub2('tags')">标签维护</div>
+    </div>
+    ${tab==='list'?`
+    <div class="toolbar">
+      <select class="select"><option>全部类型</option><option>客户实景</option><option>设计方案</option></select>
+      <select class="select"><option>全部风格</option><option>现代</option><option>轻奢</option><option>新中式</option></select>
+      <select class="select"><option>全部空间</option><option>客厅</option><option>卧室</option><option>书房</option><option>全屋</option></select>
+      <span class="spacer"></span><button class="btn-sm primary" onclick="toast('打开新增案例')">+ 新增案例</button>
+    </div>
+    <table class="tbl"><thead><tr><th>标题</th><th>类型</th><th>风格</th><th>空间</th><th>面积</th><th>状态</th><th>操作</th></tr></thead><tbody>
+      ${rows.map((r,i)=>`<tr><td>${r[0]}</td><td><span class="tag ${r[1]==='客户实景'?'tag-default':'tag-gold'}">${r[1]}</span></td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td><span class="tag ${r[5]==='上架'?'tag-success':'tag-default'}">${r[5]}</span></td>
+        <td><span class="link" onclick="openEditCase(${i})">编辑</span> &nbsp; <span class="link" onclick="toggleRowState(C_DATA,${i},5,'上架','下架','案例')">${r[5]==='上架'?'下架':'上架'}</span> &nbsp; <span class="link" style="color:var(--error)" onclick="del('案例','${r[0]}')">删除</span></td></tr>`).join('')}
+    </tbody></table>${pager()}`:`
+    <div class="note">BR-3.2 风格 / 空间分类字典，供前台筛选（FR-3.4）。</div>
+    <table class="tbl"><thead><tr><th>字典类型</th><th>可选值</th><th>操作</th></tr></thead><tbody>
+      <tr><td>风格标签</td><td>现代 / 轻奢 / 新中式 / 侘寂 / 北欧</td><td><span class="link" onclick="toast('打开风格标签编辑')">编辑</span></td></tr>
+      <tr><td>空间类型</td><td>客厅 / 卧室 / 书房 / 餐厅 / 全屋</td><td><span class="link" onclick="toast('打开空间类型编辑')">编辑</span></td></tr>
+    </tbody></table>`}
+  </div>`;
+}
+
+/* ===================== BR-4 新闻管理 ===================== */
+function viewNews(){
+  const rows=N_DATA;
+  return `<div class="page-card"><h2 class="page-title">新闻管理 <span class="scope-tip">内容编辑可维护</span></h2>
+    <div class="page-desc">BR-4 企业新闻 / 行业资讯 + 文章发布 / 下架 / 置顶。</div>
+    <div class="toolbar">
+      <select class="select"><option>全部分类</option><option>企业新闻</option><option>行业资讯</option></select>
+      <input class="search-input" placeholder="搜索标题"/>
+      <span class="spacer"></span><button class="btn-sm primary" onclick="openNewsModal()">+ 写文章</button>
+    </div>
+    <table class="tbl"><thead><tr><th>标题</th><th>分类</th><th>发布时间</th><th>作者</th><th>状态</th><th>操作</th></tr></thead><tbody>
+      ${rows.map((r,i)=>`<tr><td>${r[0]}</td><td><span class="tag ${r[1]==='企业新闻'?'tag-processing':'tag-gold'}">${r[1]}</span></td><td class="muted">${r[2]}</td><td>${r[3]}</td><td><span class="tag ${r[4]==='已发布'?'tag-success':r[4]==='草稿'?'tag-warning':'tag-default'}">${r[4]}</span></td>
+        <td><span class="link" onclick="openEditNews(${i})">编辑</span> &nbsp; <span class="link" onclick="toggleRowState(N_DATA,${i},4,'已发布','下架','文章')">${r[4]==='已发布'?'下架':'发布'}</span> &nbsp; <span class="link" onclick="toast('已置顶「${r[0]}」')">置顶</span> &nbsp; <span class="link" style="color:var(--error)" onclick="del('文章','${r[0]}')">删除</span></td></tr>`).join('')}
+    </tbody></table>${pager()}</div>`;
+}
+
+/* ===================== BR-6 页面内容 / Banner ===================== */
+function viewPage(){
+  const tab=state.subView2||'banner';
+  const banners=B_DATA;
+  return `<div class="page-card"><h2 class="page-title">页面内容 / Banner 管理 <span class="scope-tip">内容编辑可维护</span></h2>
+    <div class="page-desc">BR-6 首页轮播图 + 关于TP / 发展历程 / 品牌介绍 / 联系我们页面内容。</div>
+    <div class="tabs">
+      <div class="tab ${tab==='banner'?'active':''}" onclick="sub2('banner')">Banner 管理</div>
+      <div class="tab ${tab==='about'?'active':''}" onclick="sub2('about')">关于TP</div>
+      <div class="tab ${tab==='history'?'active':''}" onclick="sub2('history')">发展历程</div>
+      <div class="tab ${tab==='brand'?'active':''}" onclick="sub2('brand')">品牌介绍</div>
+      <div class="tab ${tab==='contact'?'active':''}" onclick="sub2('contact')">联系我们</div>
+    </div>
+    ${tab==='banner'?`
+      <div class="toolbar"><span class="spacer"></span><button class="btn-sm primary" onclick="openBannerModal()">+ 新增 Banner</button></div>
+      <table class="tbl"><thead><tr><th>标题</th><th>跳转链接</th><th>排序</th><th>状态</th><th>生效时间</th><th>操作</th></tr></thead><tbody>
+        ${banners.map((b,i)=>`<tr><td>${b[0]}</td><td class="muted">${b[1]}</td><td>${b[2]}</td><td><span class="tag ${b[3]==='上线'?'tag-success':'tag-default'}">${b[3]}</span></td><td class="muted">${b[4]}</td>
+          <td><span class="link" onclick="openEditBanner(${i})">编辑</span> &nbsp; <span class="link" onclick="toggleRowState(B_DATA,${i},3,'上线','下线','Banner')">${b[3]==='上线'?'下线':'上线'}</span> &nbsp; <span class="link" style="color:var(--error)" onclick="del('Banner','${b[0]}')">删除</span></td></tr>`).join('')}
+      </tbody></table>
+      <div class="note">BR-6.1 支持排序、上下线、可选生效时间；首页轮播图（FR-1.2）由此处配置。</div>
+    `:tab==='history'?`
+      <div class="note">BR-6.2 发展历程时间轴条目（年份 + 事件）增删改排序。</div>
+      <div style="padding:8px 0;">${H_DATA.map((e,i)=>`<div class="timeline-item"><div class="yr">${e[0]}</div><div>${e[1]}</div>
+        <div style="margin-top:6px;"><span class="link" onclick="openEditHistory(${i})">编辑</span> &nbsp; <span class="link" style="color:var(--error)" onclick="delHistory(${i})">删除</span></div></div>`).join('')}
+      </div>
+      <button class="btn-sm primary" onclick="openHistoryModal()">+ 新增条目</button>
+    `:tab==='contact'?`
+      <div class="note">BR-6.2 联系信息 + 地图坐标 + 预约时段选项维护（对接 FR-6.4）。</div>
+      <div class="form-row"><label>地址</label><input class="form-input" value="上海市浦东新区XX路88号 TP 大厦"/></div>
+      <div class="form-row"><label>电话 / 邮箱 / 工作时间</label><div class="row"><input class="form-input" placeholder="电话"/><input class="form-input" placeholder="邮箱"/><input class="form-input" placeholder="工作时间"/></div></div>
+      <div class="form-row"><label>地图坐标（合规地图，BR-NFR-3）</label><input class="form-input" placeholder="经纬度 / 地址（中国大陆标准地图）"/></div>
+      <div class="form-row"><label>预约时段选项（前台 FR-6.4.4 下拉来源）</label>
+        <div class="row">
+          <span class="tag tag-gold">上午 09:00-12:00</span><span class="tag tag-gold">下午 13:30-17:30</span>
+          <button class="btn-sm" onclick="toast('新增时段')">+ 时段</button>
+        </div></div>
+      <button class="btn-sm primary" onclick="toast('保存联系我们')">保存</button>
+    `:`
+      <div class="note">BR-6.2 ${tab==='about'?'关于TP':tab==='brand'?'品牌介绍':''}：富文本 + 图片（对接 FR-6.1 / FR-6.3）。</div>
+      <label class="upload" style="display:block;margin-bottom:12px"><input type="file" accept="image/*" hidden onchange="onPickFile(event,'pg-up')"/><span id="pg-up">点击选择封面图片（可选）</span></label>
+      <textarea class="form-textarea" style="min-height:160px;" placeholder="编辑 ${tab==='about'?'关于TP':'品牌介绍'} 富文本内容（图文）"></textarea>
+      <div style="margin-top:12px;"><button class="btn-sm primary" onclick="toast('保存')">保存</button></div>
+    `}
+  </div>`;
+}
+
+/* ===================== BR-5 招聘管理 ===================== */
+function viewJob(){
+  const rows=J_DATA;
+  return `<div class="page-card"><h2 class="page-title">职位管理 <span class="scope-tip">内容编辑 / 招聘专员可维护</span></h2>
+    <div class="page-desc">BR-5.1 职位增删改查、上下架、排序（社招 / 校招两类）。</div>
+    <div class="toolbar">
+      <select class="select"><option>全部类型</option><option>社会招聘</option><option>校园招聘</option></select>
+      <input class="search-input" placeholder="搜索职位"/>
+      <span class="spacer"></span><button class="btn-sm primary" onclick="openJobModal()">+ 新增职位</button>
+    </div>
+    <table class="tbl"><thead><tr><th>职位名称</th><th>类型</th><th>部门</th><th>地点</th><th>薪资</th><th>状态</th><th>操作</th></tr></thead><tbody>
+      ${rows.map((r,i)=>`<tr><td>${r[0]}</td><td><span class="tag ${r[1]==='社会招聘'?'tag-processing':'tag-gold'}">${r[1]}</span></td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td><span class="tag ${r[5]==='招聘中'?'tag-success':'tag-default'}">${r[5]}</span></td>
+        <td><span class="link" onclick="openEditJob(${i})">编辑</span> &nbsp; <span class="link" onclick="toggleRowState(J_DATA,${i},5,'招聘中','已暂停','职位')">${r[5]==='招聘中'?'暂停':'开放'}</span> &nbsp; <span class="link" style="color:var(--error)" onclick="del('职位','${r[0]}')">删除</span></td></tr>`).join('')}
+    </tbody></table>${pager()}</div>`;
+}
+function viewResume(){
+  const rows=[
+    ['张**','138****8821','全屋定制设计师','2026-08-16','待处理','简历.pdf'],
+    ['李**','139****2033','空间搭配顾问','2026-08-15','已查看','简历.pdf'],
+    ['王**','137****6610','管培生','2026-08-14','已联系','简历.pdf'],
+    ['陈**','135****7788','全屋定制设计师','2026-08-13','不合适','简历.pdf'],
+  ];
+  return `<div class="page-card"><h2 class="page-title">简历投递管理 <span class="scope-tip">招聘专员 / 超管可见</span></h2>
+    <div class="page-desc">BR-5.2 投递查看、筛选、详情、附件下载、状态流转（待处理 → 已查看 → 已联系 / 不合适）、备注。初始状态=待处理（§10.1）。</div>
+    <div class="toolbar">
+      <select class="select"><option>全部状态</option><option>待处理</option><option>已查看</option><option>已联系</option><option>不合适</option></select>
+      <select class="select"><option>全部职位</option><option>全屋定制设计师</option><option>空间搭配顾问</option><option>管培生</option></select>
+      <input class="search-input" placeholder="手机号 / 姓名"/>
+      <span class="spacer"></span>
+    </div>
+    <table class="tbl"><thead><tr><th>姓名</th><th>手机号</th><th>应聘职位</th><th>投递时间</th><th>状态</th><th>附件</th><th>操作</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td>${r[0]}</td><td class="muted">${r[1]}</td><td>${r[2]}</td><td class="muted">${r[3]}</td>
+        <td><span class="tag ${r[4]==='待处理'?'tag-warning':r[4]==='已查看'?'tag-processing':r[4]==='已联系'?'tag-success':'tag-error'}">${r[4]}</span></td>
+        <td><span class="link" onclick="toast('下载 '+r[5])">${r[5]}</span></td>
+        <td><span class="link" onclick="openResume('${r[0]}','${r[2]}','${r[4]}')">详情</span></td></tr>`).join('')}
+    </tbody></table>${pager()}</div>`;
+}
+function openResume(name,job,st){
+  const stTag=`<span class="tag ${st==='待处理'?'tag-warning':st==='已联系'?'tag-success':'tag-processing'}">${st}</span>`;
+  document.getElementById('drawerTitle').textContent='简历详情 · '+name;
+  document.getElementById('drawerBody').innerHTML=`
+    <div class="kv">
+      <div><span class="k">姓名</span>${name}</div>
+      <div><span class="k">手机号</span>138****8821</div>
+      <div><span class="k">邮箱</span>zhang**@mail.com</div>
+      <div><span class="k">应聘职位</span>${job}</div>
+      <div><span class="k">学校/学历</span>XX 大学 / 硕士（校招字段）</div>
+      <div><span class="k">工作年限</span>5 年（社招字段）</div>
+      <div><span class="k">个人简介</span>5 年全屋定制设计经验，擅长现代极简与轻奢风格。</div>
+      <div><span class="k">附件</span><span class="link" onclick="toast('下载简历.pdf')">简历.pdf（≤10MB）</span></div>
+      <div><span class="k">当前状态</span>${stTag}</div>
+    </div>
+    <div class="form-row" style="margin-top:16px;"><label>状态流转</label>
+      <div class="seg" id="rseg">
+        <button class="${st==='待处理'?'on':''}" onclick="rseg('待处理')">待处理</button>
+        <button class="${st==='已查看'?'on':''}" onclick="rseg('已查看')">已查看</button>
+        <button class="${st==='已联系'?'on':''}" onclick="rseg('已联系')">已联系</button>
+        <button class="${st==='不合适'?'on':''}" onclick="rseg('不合适')">不合适</button>
+      </div>
+    </div>
+    <div class="form-row"><label>跟进备注</label><textarea class="form-textarea" placeholder="记录沟通情况（BR-5.2 备注）"></textarea></div>`;
+  document.getElementById('drawerFoot').innerHTML=`<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm primary" onclick="toast('简历状态已更新');closeOverlays()">保存</button>`;
+  showDrawer();
+}
+function rseg(s){document.querySelectorAll('#rseg button').forEach(b=>b.classList.remove('on'));event.target.classList.add('on');}
+
+/* ===================== BR-7 在线预约管理 ===================== */
+function viewAppointment(){
+  const rows=[
+    ['刘**','136****1190','2026-08-20','上午','想看现代极简样板间','待处理'],
+    ['黄**','137****5521','2026-08-19','下午','全屋定制咨询','已联系'],
+    ['周**','138****9032','2026-08-18','上午','—','已完成'],
+    ['吴**','139****2288','2026-08-17','下午','改期至下周','已取消'],
+  ];
+  return `<div class="page-card"><h2 class="page-title">在线预约管理 <span class="scope-tip">客服 / 超管可见</span></h2>
+    <div class="page-desc">BR-7 预约查看、筛选、状态流转（待处理 → 已联系 → 已完成 / 已取消）、处理记录备注。初始状态=待处理（§10.1）。</div>
+    <div class="toolbar">
+      <select class="select"><option>全部状态</option><option>待处理</option><option>已联系</option><option>已完成</option><option>已取消</option></select>
+      <input class="search-input" placeholder="手机号 / 姓名"/>
+      <span class="spacer"></span><button class="btn-sm" onclick="toast('新预约提醒已开启（BR-7.4 可选）')">提醒设置</button>
+    </div>
+    <table class="tbl"><thead><tr><th>姓名</th><th>手机号</th><th>预约日期</th><th>时段</th><th>备注</th><th>状态</th><th>操作</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td>${r[0]}</td><td class="muted">${r[1]}</td><td>${r[2]}</td><td><span class="tag tag-gold">${r[3]}</span></td><td class="muted">${r[4]}</td>
+        <td><span class="tag ${r[5]==='待处理'?'tag-warning':r[5]==='已联系'?'tag-processing':r[5]==='已完成'?'tag-success':'tag-error'}">${r[5]}</span></td>
+        <td><span class="link" onclick="openAppoint('${r[0]}','${r[5]}')">处理</span></td></tr>`).join('')}
+    </tbody></table>${pager()}</div>`;
+}
+function openAppoint(name,st){
+  document.getElementById('drawerTitle').textContent='预约处理 · '+name;
+  document.getElementById('drawerBody').innerHTML=`
+    <div class="kv">
+      <div><span class="k">姓名</span>${name}</div>
+      <div><span class="k">手机号</span>136****1190</div>
+      <div><span class="k">预约日期</span>2026-08-20</div>
+      <div><span class="k">时段</span>上午 09:00-12:00</div>
+      <div><span class="k">备注</span>想看现代极简样板间</div>
+      <div><span class="k">当前状态</span><span class="tag ${st==='待处理'?'tag-warning':st==='已联系'?'tag-processing':'tag-success'}">${st}</span></div>
+    </div>
+    <div class="form-row" style="margin-top:14px;"><label>状态流转（BR-7.2）</label>
+      <div class="seg" id="aseg">
+        <button class="${st==='待处理'?'on':''}" onclick="aseg('待处理')">待处理</button>
+        <button class="${st==='已联系'?'on':''}" onclick="aseg('已联系')">已联系</button>
+        <button class="${st==='已完成'?'on':''}" onclick="aseg('已完成')">已完成</button>
+        <button class="${st==='已取消'?'on':''}" onclick="aseg('已取消')">已取消</button>
+      </div>
+    </div>
+    <div class="form-row"><label>处理记录 / 备注（BR-7.3）</label><textarea class="form-textarea" placeholder="记录跟进情况"></textarea></div>`;
+  document.getElementById('drawerFoot').innerHTML=`<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm primary" onclick="toast('预约状态已更新');closeOverlays()">保存</button>`;
+  showDrawer();
+}
+function aseg(s){document.querySelectorAll('#aseg button').forEach(b=>b.classList.remove('on'));event.target.classList.add('on');}
+
+/* ===================== BR-8 留言咨询管理 ===================== */
+function viewMessage(){
+  const rows=[
+    ['赵**','微信/电话','请问全屋定制大概周期多久？','未读'],
+    ['钱**','邮箱','想预约到店看样','已读'],
+    ['孙**','电话','轻奢风格有没有案例参考','已处理'],
+  ];
+  return `<div class="page-card"><h2 class="page-title">留言咨询管理 <span class="scope-tip">客服 / 超管可见</span></h2>
+    <div class="page-desc">BR-8 留言查看、筛选、状态流转（未读 → 已读 → 已处理）、备注与跟进。初始状态=未读（§10.1）。</div>
+    <div class="toolbar">
+      <select class="select"><option>全部状态</option><option>未读</option><option>已读</option><option>已处理</option></select>
+      <span class="spacer"></span>
+    </div>
+    <table class="tbl"><thead><tr><th>姓名</th><th>联系方式</th><th>留言内容</th><th>状态</th><th>操作</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td>${r[0]}</td><td class="muted">${r[1]}</td><td>${r[2]}</td>
+        <td><span class="tag ${r[3]==='未读'?'tag-error':r[3]==='已读'?'tag-processing':'tag-success'}">${r[3]}</span></td>
+        <td><span class="link" onclick="openMsg('${r[0]}','${r[2]}','${r[3]}')">处理</span></td></tr>`).join('')}
+    </tbody></table>${pager()}</div>`;
+}
+function openMsg(name,content,st){
+  document.getElementById('drawerTitle').textContent='留言处理 · '+name;
+  document.getElementById('drawerBody').innerHTML=`
+    <div class="kv">
+      <div><span class="k">姓名</span>${name}</div>
+      <div><span class="k">内容</span>${content}</div>
+      <div><span class="k">当前状态</span><span class="tag ${st==='未读'?'tag-error':st==='已读'?'tag-processing':'tag-success'}">${st}</span></div>
+    </div>
+    <div class="form-row" style="margin-top:14px;"><label>状态流转（BR-8.2）</label>
+      <div class="seg" id="mseg">
+        <button class="${st==='未读'?'on':''}" onclick="mseg('未读')">未读</button>
+        <button class="${st==='已读'?'on':''}" onclick="mseg('已读')">已读</button>
+        <button class="${st==='已处理'?'on':''}" onclick="mseg('已处理')">已处理</button>
+      </div>
+    </div>
+    <div class="form-row"><label>备注 / 跟进记录（BR-8.3）</label><textarea class="form-textarea" placeholder="记录处理情况"></textarea></div>`;
+  document.getElementById('drawerFoot').innerHTML=`<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm primary" onclick="toast('留言状态已更新');closeOverlays()">保存</button>`;
+  showDrawer();
+}
+function mseg(s){document.querySelectorAll('#mseg button').forEach(b=>b.classList.remove('on'));event.target.classList.add('on');}
+
+/* ===================== BR-10 系统管理 ===================== */
+function viewAccount(){
+  const rows=A_DATA;
+  return `<div class="page-card"><h2 class="page-title">账号管理 <span class="scope-tip">仅超管</span></h2>
+    <div class="page-desc">BR-10.1 账号新增、编辑、禁用/启用、重置密码。</div>
+    <div class="toolbar"><span class="spacer"></span><button class="btn-sm primary" onclick="openAccountModal()">+ 新增账号</button></div>
+    <table class="tbl"><thead><tr><th>账号</th><th>昵称</th><th>角色</th><th>状态</th><th>操作</th></tr></thead><tbody>
+      ${rows.map((r,i)=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td><span class="tag tag-gold">${r[2]}</span></td>
+        <td><span class="tag ${r[3]==='启用'?'tag-success':'tag-default'}">${r[3]}</span></td>
+        <td><span class="link" onclick="openEditAccount(${i})">编辑</span> &nbsp; <span class="link" onclick="toast('已重置密码（'+'${r[0]}'+'）')">重置密码</span> &nbsp; <span class="link" onclick="toggleRowState(A_DATA,${i},3,'启用','禁用','账号')">${r[3]==='启用'?'禁用':'启用'}</span></td></tr>`).join('')}
+    </tbody></table>${pager()}</div>`;
+}
+function toggleAcc(n){toast(n+' 状态已切换');}
+function viewRole(){
+  const perms={
+    '内容管理':['产品管理','案例管理','新闻管理','页面内容/Banner'],
+    '招聘管理':['职位管理','简历投递管理'],
+    '线索管理':['在线预约管理','留言咨询管理'],
+    '系统管理':['账号管理','角色管理','操作日志'],
+    '数据看板':['全部线索'],
+  };
+  return `<div class="page-card"><h2 class="page-title">角色管理 <span class="scope-tip">仅超管</span></h2>
+    <div class="page-desc">BR-10.2 角色增删改 + 为角色配置菜单/操作权限（RBAC，对接 §8）。</div>
+    <div class="toolbar">
+      <table class="tbl"><thead><tr><th>角色</th><th>权限范围</th><th>操作</th></tr></thead><tbody>
+        <tr><td><span class="tag tag-gold">超级管理员</span></td><td>全部模块 + 看板全部线索</td><td><span class="link" onclick="openRolePerm('超级管理员')">配置权限</span></td></tr>
+        <tr><td><span class="tag tag-default">内容编辑</span></td><td>内容管理（产品/案例/新闻/页面）；无看板</td><td><span class="link" onclick="openRolePerm('内容编辑')">配置权限</span></td></tr>
+        <tr><td><span class="tag tag-default">客服</span></td><td>在线预约 + 留言；看板（预约+留言）</td><td><span class="link" onclick="openRolePerm('客服')">配置权限</span></td></tr>
+        <tr><td><span class="tag tag-default">招聘专员</span></td><td>职位 + 简历；看板（简历投递）</td><td><span class="link" onclick="openRolePerm('招聘专员')">配置权限</span></td></tr>
+      </tbody></table>
+    </div>
+    <div class="note">§8 角色权限矩阵（权限可在后台按角色配置调整）。</div>
+  </div>`;
+}
+function openRolePerm(role){
+  const perms={
+    '超级管理员':['product','case','news','page','job','resume','appointment','message','account','role','log','dashboard'],
+    '内容编辑':['product','case','news','page'],
+    '客服':['appointment','message'],
+    '招聘专员':['job','resume'],
+  };
+  const all={product:'产品管理',case:'案例管理',news:'新闻管理',page:'页面内容/Banner',job:'职位管理',resume:'简历投递管理',appointment:'在线预约管理',message:'留言咨询管理',account:'账号管理',role:'角色管理',log:'操作日志',dashboard:'数据看板'};
+  const cur=perms[role]||[];
+  openModal('配置权限 · '+role, `
+    <div class="perm-tree">
+      ${Object.entries(all).map(([k,v])=>`<label class="chk"><input type="checkbox" ${cur.includes(k)?'checked':''}/> ${v}</label>`).join('')}
+    </div>
+    <div class="note" style="margin-top:14px;">勾选即授予该角色菜单/操作权限；前端隐藏无权限菜单，后端接口二次校验拦截（§10.3）。</div>
+  `, `<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm primary" onclick="toast('权限已保存');closeOverlays()">保存</button>`);
+}
+function viewLog(){
+  const rows=[
+    ['admin','登录系统','—','2026-08-17 09:12'],
+    ['editor01','上架产品「云隐布艺沙发」','Product#3','2026-08-17 10:03'],
+    ['cs01','处理预约（刘**）','Appointment#21','2026-08-17 11:20'],
+    ['hr01','下载简历（张**）','Application#9','2026-08-17 14:45'],
+  ];
+  return `<div class="page-card"><h2 class="page-title">操作日志 <span class="scope-tip">仅超管</span></h2>
+    <div class="page-desc">BR-10.3 记录关键操作（谁、何时、做了什么）。敏感操作（删除、禁用账号）留痕（§10.3）。</div>
+    <div class="toolbar"><input class="search-input" placeholder="操作人 / 操作内容"/><span class="spacer"></span></div>
+    <table class="tbl"><thead><tr><th>操作人</th><th>操作</th><th>对象</th><th>时间</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="muted">${r[2]}</td><td class="muted">${r[3]}</td></tr>`).join('')}
+    </tbody></table>${pager()}</div>`;
+}
+
+/* ===================== 通用增强：编辑 / 状态切换 / 文件选择 ===================== */
+function toggleRowState(arr,i,col,on,off,label){
+  arr[i][col]=arr[i][col]===on?off:on;
+  render();
+  toast(label+'「'+arr[i][0]+'」已'+(arr[i][col]===on?on:off));
+}
+function segPick(grp,btn){document.querySelectorAll('#'+grp+' button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+function onPickFile(ev,targetId){
+  const f=ev.target.files && ev.target.files[0];
+  if(!f) return;
+  const el=document.getElementById(targetId);
+  if(el) el.innerHTML='已选择：<b style="color:var(--gold)">'+f.name+'</b>（'+(f.size/1024).toFixed(0)+' KB）';
+  toast('已选择文件：'+f.name);
+}
+function pickImg(elm,multi){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=!!multi;
+  inp.onchange=()=>{
+    if(!inp.files.length) return;
+    if(multi){toast('已选择 '+inp.files.length+' 张图片（演示）');}
+    else if(elm){elm.innerHTML=inp.files[0].name;elm.title=inp.files[0].name;toast('已选择：'+inp.files[0].name);}
+  };
+  inp.click();
+}
+
+/* ---- 产品：编辑（跳转编辑表单并回填） ---- */
+function openEditProduct(i){
+  const r=P_DATA[i];editing={kind:'product',idx:i};
+  openProductModal(r[0]);
+  document.getElementById('p-series').value=r[1];
+  document.getElementById('p-sort').value=r[2];
+  document.querySelectorAll('#p-seg button').forEach(b=>b.classList.toggle('on',b.textContent===r[3]));
+}
+
+/* ---- 案例：编辑 / 保存 ---- */
+function openEditCase(i){
+  const r=C_DATA[i];editing={kind:'case',idx:i};
+  openModal('编辑案例 · '+r[0], `
+    <div class="form-row"><label><span class="req">*</span>标题</label><input class="form-input" id="c-title" value="${r[0]}"/></div>
+    <div class="form-row"><label>类型</label><select class="form-input" id="c-type"><option>客户实景</option><option>设计方案</option></select></div>
+    <div class="form-row"><label>风格</label><select class="form-input" id="c-style"><option>现代</option><option>轻奢</option><option>新中式</option><option>侘寂</option></select></div>
+    <div class="form-row"><label>空间</label><select class="form-input" id="c-space"><option>客厅</option><option>卧室</option><option>书房</option><option>全屋</option></select></div>
+    <div class="form-row"><label>面积</label><input class="form-input" id="c-area" style="width:120px" value="${r[4]}"/></div>
+    <div class="form-row"><label>封面图</label><label class="upload" style="display:block;text-align:center"><input type="file" accept="image/*" hidden onchange="onPickFile(event,'c-up')"/><span id="c-up">点击选择封面图（JPG/PNG，≤5MB）</span></label></div>
+    <div class="form-row"><label>状态</label><div class="seg" id="c-seg"><button class="${r[5]==='上架'?'on':''}" onclick="segPick('c-seg',this)">上架</button><button class="${r[5]==='下架'?'on':''}" onclick="segPick('c-seg',this)">下架</button></div></div>
+  `, `<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm primary" onclick="saveEditCase()">保存</button>`);
+  document.getElementById('c-type').value=r[1];
+  document.getElementById('c-style').value=r[2];
+  document.getElementById('c-space').value=r[3];
+}
+function saveEditCase(){
+  const r=C_DATA[editing.idx];
+  const t=document.getElementById('c-title').value.trim();
+  if(!t){toast('请填写标题',true);return;}
+  r[0]=t;r[1]=document.getElementById('c-type').value;r[2]=document.getElementById('c-style').value;
+  r[3]=document.getElementById('c-space').value;r[4]=document.getElementById('c-area').value.trim()||r[4];
+  const seg=document.querySelector('#c-seg button.on');if(seg)r[5]=seg.textContent;
+  editing={kind:null,idx:null};closeOverlays();render();toast('案例「'+r[0]+'」已保存');
+}
+
+/* ---- 新闻：编辑 / 新增 / 保存 ---- */
+function openNewsModal(){openNewsForm(null);}
+function openEditNews(i){openNewsForm(i);}
+function openNewsForm(i){
+  editing={kind:'news',idx:i};
+  const r=i!=null?N_DATA[i]:null;
+  openModal(i!=null?'编辑文章':'写文章', `
+    <div class="form-row"><label><span class="req">*</span>标题</label><input class="form-input" id="n-title" value="${r?r[0]:''}"/></div>
+    <div class="form-row"><label>分类</label><select class="form-input" id="n-cat"><option>企业新闻</option><option>行业资讯</option></select></div>
+    <div class="form-row"><label>作者</label><input class="form-input" id="n-author" value="${r?r[3]:''}"/></div>
+    <div class="form-row"><label>封面图</label><label class="upload" style="display:block;text-align:center"><input type="file" accept="image/*" hidden onchange="onPickFile(event,'n-up')"/><span id="n-up">点击选择封面图</span></label></div>
+    <div class="form-row"><label>正文（富文本）</label><textarea class="form-textarea" placeholder="支持图文富文本（XSS 过滤，见 PRD §10.2）"></textarea></div>
+    <div class="form-row"><label>状态</label><div class="seg" id="n-seg"><button class="${r&&r[4]==='已发布'?'on':''}" onclick="segPick('n-seg',this)">已发布</button><button class="${r&&r[4]==='草稿'?'on':''}" onclick="segPick('n-seg',this)">草稿</button><button class="${r&&r[4]==='下架'?'on':''}" onclick="segPick('n-seg',this)">下架</button></div></div>
+  `, `<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm primary" onclick="saveNews()">保存</button>`);
+  if(r){document.getElementById('n-cat').value=r[1];}
+}
+function saveNews(){
+  const t=document.getElementById('n-title').value.trim();
+  if(!t){toast('请填写标题',true);return;}
+  const seg=document.querySelector('#n-seg button.on');
+  const row=[t,document.getElementById('n-cat').value,'2026-08-18',document.getElementById('n-author').value.trim()||'编辑',seg?seg.textContent:'草稿'];
+  if(editing.idx!=null){N_DATA[editing.idx]=row;toast('文章「'+t+'」已保存');}
+  else{N_DATA.unshift(row);toast('文章「'+t+'」已发布');}
+  editing={kind:null,idx:null};closeOverlays();render();
+}
+
+/* ---- 职位：编辑 / 新增 / 保存 ---- */
+function openJobModal(){openJobForm(null);}
+function openEditJob(i){openJobForm(i);}
+function openJobForm(i){
+  editing={kind:'job',idx:i};
+  const r=i!=null?J_DATA[i]:null;
+  openModal(i!=null?'编辑职位':'新增职位', `
+    <div class="form-row"><label><span class="req">*</span>职位名称</label><input class="form-input" id="j-name" value="${r?r[0]:''}"/></div>
+    <div class="form-row"><label>类型</label><select class="form-input" id="j-type"><option>社会招聘</option><option>校园招聘</option></select></div>
+    <div class="form-row"><label>部门 / 地点 / 薪资</label><div class="row"><input class="form-input" id="j-dept" style="flex:1" placeholder="部门" value="${r?r[2]:''}"/><input class="form-input" id="j-loc" style="flex:1" placeholder="地点" value="${r?r[3]:''}"/><input class="form-input" id="j-pay" style="width:110px" placeholder="薪资" value="${r?r[4]:''}"/></div></div>
+    <div class="form-row"><label>岗位职责 / 任职要求（JD）</label><textarea class="form-textarea" placeholder="岗位职责与任职要求（富文本）"></textarea></div>
+    <div class="form-row"><label>状态</label><div class="seg" id="j-seg"><button class="${!r||r[5]==='招聘中'?'on':''}" onclick="segPick('j-seg',this)">招聘中</button><button class="${r&&r[5]==='已暂停'?'on':''}" onclick="segPick('j-seg',this)">已暂停</button></div></div>
+  `, `<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm primary" onclick="saveJob()">保存</button>`);
+  if(r){document.getElementById('j-type').value=r[1];}
+}
+function saveJob(){
+  const t=document.getElementById('j-name').value.trim();
+  if(!t){toast('请填写职位名称',true);return;}
+  const seg=document.querySelector('#j-seg button.on');
+  const row=[t,document.getElementById('j-type').value,document.getElementById('j-dept').value.trim()||'—',document.getElementById('j-loc').value.trim()||'—',document.getElementById('j-pay').value.trim()||'面议',seg?seg.textContent:'招聘中'];
+  if(editing.idx!=null){J_DATA[editing.idx]=row;toast('职位「'+t+'」已保存');}
+  else{J_DATA.unshift(row);toast('职位「'+t+'」已新增');}
+  editing={kind:null,idx:null};closeOverlays();render();
+}
+
+/* ---- Banner：编辑 / 新增 / 保存 ---- */
+function openBannerModal(){openBannerForm(null);}
+function openEditBanner(i){openBannerForm(i);}
+function openBannerForm(i){
+  editing={kind:'banner',idx:i};
+  const r=i!=null?B_DATA[i]:null;
+  openModal(i!=null?'编辑 Banner':'新增 Banner', `
+    <div class="form-row"><label><span class="req">*</span>标题</label><input class="form-input" id="b-title" value="${r?r[0]:''}"/></div>
+    <div class="form-row"><label>跳转链接</label><input class="form-input" id="b-link" value="${r?r[1]:''}"/></div>
+    <div class="form-row"><label>图片</label><label class="upload" style="display:block;text-align:center"><input type="file" accept="image/*" hidden onchange="onPickFile(event,'b-up')"/><span id="b-up">点击选择 Banner 图片</span></label></div>
+    <div class="form-row"><label>排序值</label><input class="form-input" id="b-sort" style="width:120px" value="${r?r[2]:'1'}"/></div>
+    <div class="form-row"><label>状态</label><div class="seg" id="b-seg"><button class="${!r||r[3]==='上线'?'on':''}" onclick="segPick('b-seg',this)">上线</button><button class="${r&&r[3]==='下线'?'on':''}" onclick="segPick('b-seg',this)">下线</button></div></div>
+  `, `<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm primary" onclick="saveBanner()">保存</button>`);
+}
+function saveBanner(){
+  const t=document.getElementById('b-title').value.trim();
+  if(!t){toast('请填写标题',true);return;}
+  const seg=document.querySelector('#b-seg button.on');
+  const row=[t,document.getElementById('b-link').value.trim()||'/home',document.getElementById('b-sort').value.trim()||'1',seg?seg.textContent:'上线','2026-08-20'];
+  if(editing.idx!=null){B_DATA[editing.idx]=row;toast('Banner「'+t+'」已保存');}
+  else{B_DATA.unshift(row);toast('Banner「'+t+'」已新增');}
+  editing={kind:null,idx:null};closeOverlays();render();
+}
+
+/* ---- 账号：编辑 / 新增 / 保存 ---- */
+function openAccountModal(){openAccountForm(null);}
+function openEditAccount(i){openAccountForm(i);}
+function openAccountForm(i){
+  editing={kind:'account',idx:i};
+  const r=i!=null?A_DATA[i]:null;
+  openModal(i!=null?'编辑账号':'新增账号', `
+    <div class="form-row"><label><span class="req">*</span>账号</label><input class="form-input" id="a-acc" value="${r?r[0]:''}"/></div>
+    <div class="form-row"><label>昵称</label><input class="form-input" id="a-name" value="${r?r[1]:''}"/></div>
+    <div class="form-row"><label>角色</label><select class="form-input" id="a-role"><option>超级管理员</option><option>内容编辑</option><option>客服</option><option>招聘专员</option></select></div>
+    <div class="form-row"><label>状态</label><div class="seg" id="a-seg"><button class="${!r||r[3]==='启用'?'on':''}" onclick="segPick('a-seg',this)">启用</button><button class="${r&&r[3]==='禁用'?'on':''}" onclick="segPick('a-seg',this)">禁用</button></div></div>
+  `, `<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm primary" onclick="saveAccount()">保存</button>`);
+  if(r){document.getElementById('a-role').value=r[2];}
+}
+function saveAccount(){
+  const acc=document.getElementById('a-acc').value.trim();
+  if(!acc){toast('请填写账号',true);return;}
+  const seg=document.querySelector('#a-seg button.on');
+  const row=[acc,document.getElementById('a-name').value.trim()||acc,document.getElementById('a-role').value,seg?seg.textContent:'启用'];
+  if(editing.idx!=null){A_DATA[editing.idx]=row;toast('账号「'+acc+'」已保存');}
+  else{A_DATA.push(row);toast('账号「'+acc+'」已新增');}
+  editing={kind:null,idx:null};closeOverlays();render();
+}
+
+/* ---- 发展历程：编辑 / 新增 / 删除 ---- */
+function openHistoryModal(){openHistoryForm(null);}
+function openEditHistory(i){openHistoryForm(i);}
+function openHistoryForm(i){
+  editing={kind:'history',idx:i};
+  const r=i!=null?H_DATA[i]:null;
+  openModal(i!=null?'编辑条目':'新增条目', `
+    <div class="form-row"><label><span class="req">*</span>年份</label><input class="form-input" id="h-year" style="width:140px" value="${r?r[0]:''}"/></div>
+    <div class="form-row"><label><span class="req">*</span>事件</label><input class="form-input" id="h-event" value="${r?r[1]:''}"/></div>
+  `, `<button class="btn-sm" onclick="closeOverlays()">取消</button><button class="btn-sm primary" onclick="saveHistory()">保存</button>`);
+}
+function saveHistory(){
+  const y=document.getElementById('h-year').value.trim(),e=document.getElementById('h-event').value.trim();
+  if(!y||!e){toast('请填写年份与事件',true);return;}
+  if(editing.idx!=null){H_DATA[editing.idx]=[y,e];toast('条目已保存');}
+  else{H_DATA.push([y,e]);toast('条目已新增');}
+  editing={kind:null,idx:null};closeOverlays();render();
+}
+function delHistory(i){
+  if(confirm('确认删除发展历程条目「'+H_DATA[i][1]+'」？此操作将记录日志（§10.3）')){
+    H_DATA.splice(i,1);render();toast('条目已删除');
+  }
+}
+
+/* ===================== 通用 ===================== */
+function pager(){return `<div class="pagination"><span>共 42 条</span><span class="pg">‹</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span><span class="pg">›</span></div>`;}
+function del(type,n){ if(confirm('确认删除'+type+'「'+n+'」？此操作将记录日志（§10.3）')) toast(type+'「'+n+'」已删除'); }
+function save(type){ toast(type+'已保存'); closeOverlays(); }
+
+/* overlays */
+function openModal(t,b,f){document.getElementById('modalTitle').textContent=t;document.getElementById('modalBody').innerHTML=b;document.getElementById('modalFoot').innerHTML=f;document.getElementById('mask').classList.add('show');document.getElementById('modal').classList.add('show');}
+function showDrawer(){document.getElementById('mask').classList.add('show');document.getElementById('drawer').classList.add('show');}
+function closeOverlays(){document.getElementById('mask').classList.remove('show');document.getElementById('modal').classList.remove('show');document.getElementById('drawer').classList.remove('show');}
+let toastTimer;
+function toast(msg,err){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.querySelector('.ic').textContent=err?'⚠':'✓';t.querySelector('.ic').style.color=err?'#ff4d4f':'#52c41a';t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1800);}
+</script>
+</body>
+</html>

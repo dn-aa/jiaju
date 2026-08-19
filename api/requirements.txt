@@ -1,0 +1,19 @@
+# TP 全屋家居 · 后端依赖
+fastapi>=0.115
+uvicorn[standard]>=0.30
+sqlalchemy>=2.0.30
+alembic>=1.13
+pymysql>=1.1
+cryptography>=42.0          # MySQL caching_sha2_password 认证
+pydantic>=2.7
+pydantic-settings>=2.3
+PyJWT>=2.8
+bcrypt>=4.1
+redis>=5.0
+pillow>=10.3                # 图形验证码
+bleach>=6.1                 # 富文本 XSS 白名单清洗
+python-multipart>=0.0.9     # 文件上传
+
+# 测试
+pytest>=8.2
+httpx>=0.27
