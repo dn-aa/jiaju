@@ -38,3 +38,5 @@ uploads/
 # ===== 远程镜像仓库（github_src/ 独立管理，不纳入主仓库）=====
 github_src/
 .workbuddy/
+vite.config.ts.timestamp-*.mjs
+vite.config.ts.timestamp-*.mjs
