@@ -1,8 +1,8 @@
 // ============================================================
 // 【代码段功能】后台路由（RBAC 动态注册）
 //   - 静态路由：/login（登录）、/（主布局）
-//   - 主布局内按菜单注册业务路由；阶段 1 仅工作台可用，
-//     其余模块（阶段 2~5 实现）暂时落到「开发中」占位页
+//   - 主布局内按已实现模块注册业务路由（阶段 2 新增内容管理 5 模块；
+//     阶段 3~5 继续追加 leads/sys 模块）
 //   - 未登录访问受保护区 → 重定向 /login（路由守卫）
 // ============================================================
 import { createBrowserRouter, Navigate } from 'react-router-dom';
@@ -10,6 +10,11 @@ import MainLayout from '../layouts/MainLayout';
 import Login from '../pages/Login';
 import Dashboard from '../pages/Dashboard';
 import NoPerm from '../pages/NoPerm';
+import ProductManage from '../pages/content/Product';
+import CaseManage from '../pages/content/Case';
+import ArticleManage from '../pages/content/Article';
+import PageManage from '../pages/content/Page';
+import JobManage from '../pages/recruit/Job';
 import { useAuthStore } from '../store/auth';
 
 // 守卫：无 token 一律回登录页
@@ -25,7 +30,7 @@ function ComingSoon({ name }: { name: string }) {
     <div style={{ textAlign: 'center', padding: '80px 0', color: '#78716C' }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>🛠️</div>
       <div style={{ fontSize: 16, marginBottom: 4 }}>{name}模块开发中</div>
-      <div style={{ fontSize: 13 }}>按《项目开发实施方案》阶段 2~5 逐步交付</div>
+      <div style={{ fontSize: 13 }}>按《项目开发实施方案》阶段 3~5 逐步交付</div>
     </div>
   );
 }
@@ -33,11 +38,17 @@ function ComingSoon({ name }: { name: string }) {
 // 菜单 path → 已实现组件映射（后续阶段在此追加）
 const MODULES: Record<string, React.ReactNode> = {
   '/dashboard': <Dashboard />,
+  // 阶段 2：内容管理
+  '/content/product': <ProductManage />,
+  '/content/case': <CaseManage />,
+  '/content/article': <ArticleManage />,
+  '/content/page': <PageManage />,
+  '/recruit/job': <JobManage />,
 };
 
 // 主布局内的子路由：从已实现模块 + 占位生成
 const moduleRoutes = (menuPaths: string[]) => {
-  const paths = menuPaths.length ? menuPaths : ['/dashboard'];
+  const paths = menuPaths.length ? menuPaths : Object.keys(MODULES);
   return paths.map((p) => ({
     path: p.replace(/^\//, ''),
     element: MODULES[p] || <ComingSoon name={p.split('/').pop() || p} />,
@@ -55,7 +66,7 @@ export const router = createBrowserRouter([
     ),
     // 子路由动态生成：依据当前菜单（刷新后先取 store；首次进入由布局拉取菜单）
     children: [
-      ...moduleRoutes(['/dashboard']),
+      ...moduleRoutes(['/dashboard', '/content/product', '/content/case', '/content/article', '/content/page', '/recruit/job']),
       { path: '403', element: <NoPerm /> },
       { path: '*', element: <Navigate to="/dashboard" replace /> },
     ],
