@@ -5,7 +5,7 @@
 // ============================================================
 import { useEffect, useState } from 'react';
 import {
-  Button, Card, Form, Input, Modal, Popconfirm, Space, Table, Tag, Tree, message,
+  Button, Card, Form, Input, Popconfirm, Space, Table, Tag, Tree, message,
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
@@ -101,37 +101,47 @@ export default function RoleManage() {
 
   return (
     <div>
-      <PageHeader title="角色管理" />
-      <Card style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}>
-        <div style={{ display: 'flex', marginBottom: 16 }}>
-          <div style={{ flex: 1 }} />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增角色</Button>
-        </div>
-        <Table rowKey="id" columns={columns} dataSource={list} pagination={false} size="middle" />
-      </Card>
-
-      {/* 角色编辑 Modal：权限树勾选（BR-10.2） */}
-      <Modal open={modalOpen} title={editing ? `编辑角色 · ${editing.name}` : '新增角色'} width={520}
-        onCancel={() => setModalOpen(false)} onOk={save} destroyOnClose>
-        <Form form={form} layout="vertical">
-          <Form.Item name="name" label="角色名称" rules={[{ required: true, message: '请输入角色名称' }]}>
-            <Input placeholder="如：渠道运营" />
-          </Form.Item>
-        </Form>
-        <div style={{ fontWeight: 600, marginBottom: 8, color: '#1C1917' }}>权限配置（勾选后保存即时生效）</div>
-        {editing?.permissions.includes('*') ? (
-          <div style={{ color: '#B0894F', padding: 12, background: '#F5F3EF', borderRadius: 8 }}>
-            内置超级管理员拥有全部权限（"*"），不可调整。
-          </div>
-        ) : (
-          <Tree
-            checkable defaultExpandAll
-            treeData={PERM_TREE}
-            checkedKeys={checkedKeys}
-            onCheck={(keys) => setCheckedKeys((keys as string[]).filter((k) => !PERM_TREE.some((p) => p.key === k)))}
-          />
-        )}
-      </Modal>
+      {!modalOpen ? (
+        <>
+          <PageHeader title="角色管理" />
+          <Card style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}>
+            <div style={{ display: 'flex', marginBottom: 16 }}>
+              <div style={{ flex: 1 }} />
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增角色</Button>
+            </div>
+            <Table rowKey="id" columns={columns} dataSource={list} pagination={false} size="middle" />
+          </Card>
+        </>
+      ) : (
+        /* 内联表单（替代弹窗）：角色名 + 权限树 */
+        <Card
+          title={editing ? `编辑角色 · ${editing.name}` : '新增角色'}
+          extra={<Space>
+            <Button onClick={() => setModalOpen(false)}>取消</Button>
+            <Button type="primary" onClick={save}>保存</Button>
+          </Space>}
+          style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}
+        >
+          <Form form={form} layout="vertical">
+            <Form.Item name="name" label="角色名称" rules={[{ required: true, message: '请输入角色名称' }]}>
+              <Input placeholder="如：渠道运营" />
+            </Form.Item>
+          </Form>
+          <div style={{ fontWeight: 600, marginBottom: 8, color: '#1C1917' }}>权限配置（勾选后保存即时生效）</div>
+          {editing?.permissions.includes('*') ? (
+            <div style={{ color: '#B0894F', padding: 12, background: '#F5F3EF', borderRadius: 8 }}>
+              内置超级管理员拥有全部权限（"*"），不可调整。
+            </div>
+          ) : (
+            <Tree
+              checkable defaultExpandAll
+              treeData={PERM_TREE}
+              checkedKeys={checkedKeys}
+              onCheck={(keys) => setCheckedKeys((keys as string[]).filter((k) => !PERM_TREE.some((p) => p.key === k)))}
+            />
+          )}
+        </Card>
+      )}
     </div>
   );
 }

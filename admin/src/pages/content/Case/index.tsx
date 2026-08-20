@@ -5,7 +5,7 @@
 // ============================================================
 import { useEffect, useState } from 'react';
 import {
-  Button, Card, Form, Input, Modal, Select, Space, Table, Tabs, Tag, Popconfirm, message,
+  Button, Card, Form, Input, Select, Space, Table, Tabs, Tag, Popconfirm, message,
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
@@ -96,45 +96,58 @@ function CaseTab() {
   ];
 
   return (
-    <>
-      {/* 工具栏：关键字 + 类型筛选 + 新增 */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-        <Input.Search placeholder="搜索标题/风格" allowClear style={{ width: 240 }} onSearch={(v) => { setPage(1); setKeyword(v); }} />
-        <Select allowClear placeholder="类型" style={{ width: 140 }} value={typeFilter}
-          onChange={(v) => { setPage(1); setTypeFilter(v); }}
-          options={[{ value: '客户实景', label: '客户实景' }, { value: '设计方案', label: '设计方案' }]} />
-        <div style={{ flex: 1 }} />
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增案例</Button>
-      </div>
-      <Table rowKey="id" columns={columns} dataSource={list} size="middle"
-        pagination={{ total, current: page, pageSize: 10, showTotal: (t) => `共 ${t} 条`, onChange: setPage }} />
-
-      <Modal open={modalOpen} title={editing ? `编辑案例 · ${editing.title}` : '新增案例'} width={720}
-        onCancel={() => setModalOpen(false)} onOk={save} destroyOnClose>
-        <Form form={form} layout="vertical">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-            <Form.Item name="title" label="标题" rules={[{ required: true, message: '请输入标题' }]}><Input /></Form.Item>
-            <Form.Item name="type" label="类型" rules={[{ required: true }]}>
-              <Select options={[{ value: '客户实景', label: '客户实景' }, { value: '设计方案', label: '设计方案' }]} />
-            </Form.Item>
-            <Form.Item name="style" label="风格"><Input placeholder="如：现代/轻奢/新中式" /></Form.Item>
-            <Form.Item name="space" label="空间"><Input placeholder="如：客厅/卧室" /></Form.Item>
-            <Form.Item name="area" label="面积"><Input placeholder="如：128㎡" /></Form.Item>
-            <Form.Item name="sort" label="排序值"><Input placeholder="0" /></Form.Item>
+    <div>
+      {!modalOpen ? (
+        <>
+          {/* 工具栏：关键字 + 类型筛选 + 新增 */}
+          <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+            <Input.Search placeholder="搜索标题/风格" allowClear style={{ width: 240 }} onSearch={(v) => { setPage(1); setKeyword(v); }} />
+            <Select allowClear placeholder="类型" style={{ width: 140 }} value={typeFilter}
+              onChange={(v) => { setPage(1); setTypeFilter(v); }}
+              options={[{ value: '客户实景', label: '客户实景' }, { value: '设计方案', label: '设计方案' }]} />
+            <div style={{ flex: 1 }} />
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增案例</Button>
           </div>
-          <Form.Item label="封面图片" name="cover" valuePropName="value">
-            <UploadImage width={140} height={90} tip="点击上传/替换" />
-          </Form.Item>
-          {/* 关联产品（BR-3 关联产品；前台案例详情"本案应用产品"区块展示） */}
-          <Form.Item name="related_product_ids" label="关联产品（可多选）">
-            <Select mode="multiple" allowClear placeholder="选择本案应用到的产品"
-              options={productOptions} optionFilterProp="label" />
-          </Form.Item>
-          <Form.Item label="项目背景" name="background"><RichText height={140} /></Form.Item>
-          <Form.Item label="设计说明" name="description"><RichText height={140} /></Form.Item>
-        </Form>
-      </Modal>
-    </>
+          <Table rowKey="id" columns={columns} dataSource={list} size="middle"
+            pagination={{ total, current: page, pageSize: 10, showTotal: (t) => `共 ${t} 条`, onChange: setPage }} />
+        </>
+      ) : (
+        /* 内联表单（替代弹窗）：短字段 2 列网格、长字段整行 */
+        <Card
+          title={editing ? `编辑案例 · ${editing.title}` : '新增案例'}
+          extra={<Space>
+            <Button onClick={() => setModalOpen(false)}>取消</Button>
+            <Button type="primary" onClick={save}>保存</Button>
+          </Space>}
+          style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}
+        >
+          <Form form={form} layout="vertical">
+            {/* 短字段：2 列网格，一行放 2 个控件 */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 16, rowGap: 0, alignItems: 'start' }}>
+              <Form.Item name="title" label="标题" rules={[{ required: true, message: '请输入标题' }]}><Input /></Form.Item>
+              <Form.Item name="type" label="类型" rules={[{ required: true }]}>
+                <Select options={[{ value: '客户实景', label: '客户实景' }, { value: '设计方案', label: '设计方案' }]} />
+              </Form.Item>
+              <Form.Item name="style" label="风格"><Input placeholder="如：现代/轻奢/新中式" /></Form.Item>
+              <Form.Item name="space" label="空间"><Input placeholder="如：客厅/卧室" /></Form.Item>
+              <Form.Item name="area" label="面积"><Input placeholder="如：128㎡" /></Form.Item>
+              <Form.Item name="sort" label="排序值"><Input placeholder="0" /></Form.Item>
+            </div>
+            {/* 长字段：整行展示 */}
+            <Form.Item label="封面图片" name="cover" valuePropName="value">
+              <UploadImage width={140} height={90} tip="点击上传/替换" />
+            </Form.Item>
+            {/* 关联产品（BR-3 关联产品；前台案例详情"本案应用产品"区块展示） */}
+            <Form.Item name="related_product_ids" label="关联产品（可多选）">
+              <Select mode="multiple" allowClear placeholder="选择本案应用到的产品"
+                options={productOptions} optionFilterProp="label" />
+            </Form.Item>
+            <Form.Item label="项目背景" name="background"><RichText height={140} /></Form.Item>
+            <Form.Item label="设计说明" name="description"><RichText height={140} /></Form.Item>
+          </Form>
+        </Card>
+      )}
+    </div>
   );
 }
 
@@ -177,21 +190,35 @@ function StyleTab() {
   ];
 
   return (
-    <>
-      <div style={{ display: 'flex', marginBottom: 16 }}>
-        <div style={{ flex: 1 }} />
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增字典项</Button>
-      </div>
-      <Table rowKey="id" columns={columns} dataSource={list} pagination={false} size="middle" />
-      <Modal open={modalOpen} title={editing ? '编辑字典项' : '新增字典项'} onCancel={() => setModalOpen(false)} onOk={save} destroyOnClose>
-        <Form form={form} layout="vertical">
-          <Form.Item name="name" label="字典值" rules={[{ required: true, message: '请输入字典值' }]}><Input placeholder="如：侘寂" /></Form.Item>
-          <Form.Item name="type" label="类型" rules={[{ required: true }]}>
-            <Select options={[{ value: 'style', label: '风格' }, { value: 'space', label: '空间' }]} />
-          </Form.Item>
-          <Form.Item name="sort" label="排序值"><Input /></Form.Item>
-        </Form>
-      </Modal>
-    </>
+    <div>
+      {!modalOpen ? (
+        <>
+          <div style={{ display: 'flex', marginBottom: 16 }}>
+            <div style={{ flex: 1 }} />
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增字典项</Button>
+          </div>
+          <Table rowKey="id" columns={columns} dataSource={list} pagination={false} size="middle" />
+        </>
+      ) : (
+        <Card
+          title={editing ? '编辑字典项' : '新增字典项'}
+          extra={<Space>
+            <Button onClick={() => setModalOpen(false)}>取消</Button>
+            <Button type="primary" onClick={save}>保存</Button>
+          </Space>}
+          style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}
+        >
+          <Form form={form} layout="vertical">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 16, rowGap: 0, alignItems: 'start' }}>
+              <Form.Item name="name" label="字典值" rules={[{ required: true, message: '请输入字典值' }]}><Input placeholder="如：侘寂" /></Form.Item>
+              <Form.Item name="type" label="类型" rules={[{ required: true }]}>
+                <Select options={[{ value: 'style', label: '风格' }, { value: 'space', label: '空间' }]} />
+              </Form.Item>
+              <Form.Item name="sort" label="排序值"><Input /></Form.Item>
+            </div>
+          </Form>
+        </Card>
+      )}
+    </div>
   );
 }

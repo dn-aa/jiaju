@@ -21,7 +21,7 @@ export interface ArticleDetail extends ArticleBrief {
   prev?: { id: number; title: string } | null;   // 上一篇（FR-4.3）
   next?: { id: number; title: string } | null;   // 下一篇
 }
-export interface JobBrief { id: number; title: string; type: string; dept?: string | null; location?: string | null; salary?: string | null }
+export interface JobBrief { id: number; title: string; type: string; dept?: string | null; location?: string | null; salary?: string | null; cover_image?: string | null }
 export interface JobDetail extends JobBrief { responsibility?: string | null; requirement?: string | null }
 export interface PageContent { key: string; title?: string | null; content?: string | null }
 export interface SiteConfig { address?: string; phone?: string; email?: string; hours?: string; map_coord?: string; appointment_slots?: string[] }

@@ -5,7 +5,7 @@
 // ============================================================
 import { useEffect, useState } from 'react';
 import {
-  Button, Card, Form, Input, Modal, Popconfirm, Radio, Select,
+  Button, Card, Form, Input, Popconfirm, Radio, Select,
   Space, Table, Tag, message,
 } from 'antd';
 import { PlusOutlined, KeyOutlined } from '@ant-design/icons';
@@ -94,46 +94,57 @@ export default function AccountManage() {
 
   return (
     <div>
-      <PageHeader title="账号管理" />
-      <Card style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}>
-        {/* 工具栏：搜索 + 新增 */}
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-          <Input.Search placeholder="搜索用户名/姓名/手机号" allowClear style={{ width: 260 }}
-            onSearch={(v) => { setPage(1); setKeyword(v); }} />
-          <div style={{ flex: 1 }} />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增账号</Button>
-        </div>
-        <Table rowKey="id" columns={columns} dataSource={list} size="middle"
-          pagination={{ total, current: page, pageSize: 10, showTotal: (t) => `共 ${t} 条`, onChange: setPage }} />
-      </Card>
-
-      {/* 新增/编辑 Modal */}
-      <Modal open={modalOpen} title={editing ? `编辑账号 · ${editing.username}` : '新增账号'} width={560}
-        onCancel={() => setModalOpen(false)} onOk={save} destroyOnClose>
-        <Form form={form} layout="vertical">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-            <Form.Item name="username" label="登录名" rules={[{ required: true, message: '请输入登录名' }]}>
-              <Input disabled={!!editing} placeholder="创建后不可修改" />
+      {!modalOpen ? (
+        <>
+          <PageHeader title="账号管理" />
+          <Card style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}>
+            {/* 工具栏：搜索 + 新增 */}
+            <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+              <Input.Search placeholder="搜索用户名/姓名/手机号" allowClear style={{ width: 260 }}
+                onSearch={(v) => { setPage(1); setKeyword(v); }} />
+              <div style={{ flex: 1 }} />
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增账号</Button>
+            </div>
+            <Table rowKey="id" columns={columns} dataSource={list} size="middle"
+              pagination={{ total, current: page, pageSize: 10, showTotal: (t) => `共 ${t} 条`, onChange: setPage }} />
+          </Card>
+        </>
+      ) : (
+        /* 内联表单（替代弹窗）：短字段 2 列网格、长字段整行 */
+        <Card
+          title={editing ? `编辑账号 · ${editing.username}` : '新增账号'}
+          extra={<Space>
+            <Button onClick={() => setModalOpen(false)}>取消</Button>
+            <Button type="primary" onClick={save}>保存</Button>
+          </Space>}
+          style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}
+        >
+          <Form form={form} layout="vertical">
+            {/* 短字段：2 列网格，一行放 2 个控件 */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 16, rowGap: 0, alignItems: 'start' }}>
+              <Form.Item name="username" label="登录名" rules={[{ required: true, message: '请输入登录名' }]}>
+                <Input disabled={!!editing} placeholder="创建后不可修改" />
+              </Form.Item>
+              <Form.Item name="role_id" label="角色" rules={[{ required: true, message: '请选择角色' }]}>
+                <Select options={roles.map((r) => ({ value: r.id, label: r.name }))} placeholder="选择角色" />
+              </Form.Item>
+              <Form.Item name="real_name" label="姓名"><Input /></Form.Item>
+              <Form.Item name="nickname" label="昵称"><Input /></Form.Item>
+              <Form.Item name="phone" label="手机号"><Input /></Form.Item>
+              <Form.Item name="email" label="邮箱"><Input /></Form.Item>
+              <Form.Item name="gender" label="性别">
+                <Radio.Group options={[{ value: 0, label: '保密' }, { value: 1, label: '男' }, { value: 2, label: '女' }]} />
+              </Form.Item>
+              <Form.Item name="position" label="职位"><Input /></Form.Item>
+            </div>
+            {/* 初始密码：编辑时留空不修改（走重置密码接口） */}
+            <Form.Item name="password" label={editing ? '初始密码（留空不修改）' : '初始密码'}
+              rules={editing ? [] : [{ required: true, min: 6, message: '至少 6 位' }]}>
+              <Input.Password placeholder={editing ? '不修改请留空' : '至少 6 位'} />
             </Form.Item>
-            <Form.Item name="role_id" label="角色" rules={[{ required: true, message: '请选择角色' }]}>
-              <Select options={roles.map((r) => ({ value: r.id, label: r.name }))} placeholder="选择角色" />
-            </Form.Item>
-            <Form.Item name="real_name" label="姓名"><Input /></Form.Item>
-            <Form.Item name="nickname" label="昵称"><Input /></Form.Item>
-            <Form.Item name="phone" label="手机号"><Input /></Form.Item>
-            <Form.Item name="email" label="邮箱"><Input /></Form.Item>
-            <Form.Item name="gender" label="性别">
-              <Radio.Group options={[{ value: 0, label: '保密' }, { value: 1, label: '男' }, { value: 2, label: '女' }]} />
-            </Form.Item>
-            <Form.Item name="position" label="职位"><Input /></Form.Item>
-          </div>
-          {/* 初始密码：编辑时留空不修改（走重置密码接口） */}
-          <Form.Item name="password" label={editing ? '初始密码（留空不修改）' : '初始密码'}
-            rules={editing ? [] : [{ required: true, min: 6, message: '至少 6 位' }]}>
-            <Input.Password placeholder={editing ? '不修改请留空' : '至少 6 位'} />
-          </Form.Item>
-        </Form>
-      </Modal>
+          </Form>
+        </Card>
+      )}
     </div>
   );
 }

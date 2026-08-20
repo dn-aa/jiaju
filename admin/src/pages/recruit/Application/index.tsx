@@ -2,12 +2,14 @@
 // 【代码段功能】简历投递管理（BR-5.2）
 //   复用 LeadManage：列表脱敏 → 处理 Drawer（待处理→已查看→已联系/不合适 + 备注）
 //   附：简历附件下载链接（详情中 attachment 字段）
+//   注：emptyText='' 使未填字段显示空白（去掉 '—'），仅本模块生效
 // ============================================================
 import LeadManage, { type LeadConfig } from '../../leads/LeadManage';
 
 const cfg: LeadConfig = {
   resource: 'applications',
   title: '简历投递管理',
+  emptyText: '',   // 未填信息显示空白，去掉 '—'（预约/留言保持默认）
   statusOptions: [
     { value: 'pending', label: '待处理', color: 'warning' },
     { value: 'viewed', label: '已查看', color: 'processing' },

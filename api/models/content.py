@@ -116,6 +116,7 @@ class Job(TimestampMixin, Base):
     dept: Mapped[str | None] = mapped_column(String(64), comment="部门")
     location: Mapped[str | None] = mapped_column(String(64), comment="地点")
     salary: Mapped[str | None] = mapped_column(String(64), comment="薪资范围")
+    cover_image: Mapped[str | None] = mapped_column(String(512), comment="配图 URL（前台加入我们卡片展示）")
     responsibility: Mapped[str | None] = mapped_column(LONGTEXT, comment="岗位职责")
     requirement: Mapped[str | None] = mapped_column(LONGTEXT, comment="任职要求")
     sort: Mapped[int] = mapped_column(Integer, default=0, server_default="0", comment="排序值")

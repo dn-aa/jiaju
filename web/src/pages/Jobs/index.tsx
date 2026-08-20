@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { colors, fonts, maxWidth, radius, shadow } from '../../theme/design-tokens';
 import { getJobs, type JobBrief } from '../../services/public';
+import Pagination from '../../components/Pagination';
 
 const PAGE_SIZE = 10;
 
@@ -56,6 +57,10 @@ export default function Jobs() {
                 color: 'inherit', background: colors.surface, borderRadius: radius.md, boxShadow: shadow.sm,
                 transition: 'all .2s', borderLeft: `3px solid ${colors.gold}`,
               }}>
+                <div style={{ width: 120, minWidth: 120, height: 90, background: colors.soft, borderRadius: 8, overflow: 'hidden' }}>
+                  {j.cover_image ? <img src={j.cover_image} alt={j.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d6d3d1', fontSize: 12 }}>团队</div>}
+                </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: 17 }}>{j.title}</div>
                   <div style={{ color: colors.muted, fontSize: 13, marginTop: 6 }}>
@@ -69,17 +74,8 @@ export default function Jobs() {
           </div>
         )}
 
-        {data.total > PAGE_SIZE && (
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 32 }}>
-            {Array.from({ length: Math.ceil(data.total / PAGE_SIZE) }, (_, i) => i + 1).map((n) => (
-              <button key={n} onClick={() => setPage(n)}
-                style={{ width: 36, height: 36, borderRadius: 8, border: 'none', cursor: 'pointer',
-                  background: n === page ? colors.gold : colors.soft, color: n === page ? '#fff' : colors.ink }}>
-                {n}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* 分页器：有数据时始终显示 */}
+        <Pagination current={page} total={data.total} pageSize={PAGE_SIZE} onChange={setPage} />
       </div>
     </div>
   );

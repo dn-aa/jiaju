@@ -47,10 +47,10 @@ export default function Message() {
             </div>
           ) : (
             <>
-              <F label="姓名 *"><input style={inp} value={form.name || ''} onChange={(e) => set('name', e.target.value)} placeholder="您的称呼" /></F>
-              <F label="联系方式 *"><input style={inp} value={form.contact || ''} onChange={(e) => set('contact', e.target.value)} placeholder="手机号或邮箱" /></F>
-              <F label="留言内容 *"><textarea style={{ ...inp, width: '100%', minHeight: 110, resize: 'vertical' }} value={form.content || ''} onChange={(e) => set('content', e.target.value)} placeholder="想咨询的问题" /></F>
-              <F label="验证码 *"><CaptchaInput value={captcha} onChange={setCaptcha} /></F>
+              <F label="姓名 *" value={form.name}><input style={inp} value={form.name || ''} onChange={(e) => set('name', e.target.value)} placeholder="您的称呼" /></F>
+              <F label="联系方式 *" value={form.contact}><input style={inp} value={form.contact || ''} onChange={(e) => set('contact', e.target.value)} placeholder="手机号或邮箱" /></F>
+              <F label="留言内容 *" value={form.content}><textarea style={{ ...inp, width: '100%', minHeight: 110, resize: 'vertical' }} value={form.content || ''} onChange={(e) => set('content', e.target.value)} placeholder="想咨询的问题" /></F>
+              <F label="验证码 *" value={captcha.captcha_code}><CaptchaInput value={captcha} onChange={setCaptcha} /></F>
               <PrivacyAgree agreed={agreed} onChange={setAgreed} />
               <button onClick={submit} disabled={submitting} style={{
                 width: '100%', marginTop: 6, padding: 13, borderRadius: 999, border: 'none',
@@ -64,12 +64,25 @@ export default function Message() {
   );
 }
 
-function F({ label, children }: { label: string; children: React.ReactNode }) {
+function F({ label, value, children }: { label: string; value?: string | number; children: React.ReactNode }) {
+  // 必填项：字段填写内容后红色 * 消失（已满足则不再提示）；空时显示红色 *
+  const showStar = !(value !== undefined && value !== '');
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>{renderStarLabel(label, showStar)}</div>
       {children}
     </div>
   );
+}
+
+// 必填星标 * 渲染为红色（其余文案保持弱化灰）；showStar=false 时不渲染 *
+function renderStarLabel(label: string, showStar: boolean) {
+  const parts = label.split('*');
+  return parts.map((seg, i) => (
+    <span key={i}>
+      {seg}
+      {showStar && i < parts.length - 1 && <span style={{ color: colors.danger }}>*</span>}
+    </span>
+  ));
 }
 const inp: React.CSSProperties = { width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #d6d3d1', fontSize: 14, fontFamily: 'inherit', outline: 'none' };

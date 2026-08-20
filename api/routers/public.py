@@ -260,7 +260,7 @@ def jobs(type: str | None = None, page: int = 1, page_size: int = 10, db: Sessio
     items = q.order_by(Job.sort.asc()).offset((page - 1) * page_size).limit(page_size).all()
     return ok({"list": [{
         "id": j.id, "title": j.title, "type": j.type, "dept": j.dept, "location": j.location,
-        "salary": j.salary,
+        "salary": j.salary, "cover_image": j.cover_image,
     } for j in items], "pagination": {"total": total, "page": page, "page_size": page_size}})
 
 
@@ -271,7 +271,8 @@ def job_detail(item_id: int, db: Session = Depends(get_db)):
     if j is None or j.is_activate != 1:
         raise BizError(ErrCode.NOT_FOUND, "职位不存在")
     return ok({"id": j.id, "title": j.title, "type": j.type, "dept": j.dept, "location": j.location,
-               "salary": j.salary, "responsibility": j.responsibility, "requirement": j.requirement})
+               "salary": j.salary, "cover_image": j.cover_image,
+               "responsibility": j.responsibility, "requirement": j.requirement})
 
 
 @router.get("/pages")

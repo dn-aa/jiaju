@@ -19,6 +19,7 @@ export interface LeadConfig {
   title: string;                                            // 模块标题
   statusOptions: StatusOption[];                            // 状态枚举（流转目标）
   detailFields: { key: string; label: string }[];           // Drawer 中展示的完整字段
+  emptyText?: string;                                       // 空值占位文案（默认 '—'；简历投递传 '' 显示空白）
 }
 
 interface LeadItem {
@@ -38,6 +39,9 @@ export default function LeadManage({ cfg }: { cfg: LeadConfig }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+
+  // 空值占位文案：简历投递配置为 ''（未填即空白、去掉 —），其余模块保持默认 '—'
+  const emptyText = cfg.emptyText ?? '—';
 
   // 加载列表：状态/关键字筛选 + 分页（返回脱敏数据）
   const load = useCallback(async () => {
@@ -73,9 +77,9 @@ export default function LeadManage({ cfg }: { cfg: LeadConfig }) {
       .filter((f) => f.key !== 'note')
       .map((f) => ({
         title: f.label, dataIndex: f.key, ellipsis: true,
-        render: (v: unknown) => (v == null || v === '' ? '—' : String(v)),
+        render: (v: unknown) => (v == null || v === '' ? emptyText : String(v)),
       })),
-    { title: '提交时间', dataIndex: 'created_date', width: 150, render: (v) => (v ? String(v).replace('T', ' ').slice(0, 16) : '—') },
+    { title: '提交时间', dataIndex: 'created_date', width: 150, render: (v) => (v ? String(v).replace('T', ' ').slice(0, 16) : emptyText) },
     { title: '状态', dataIndex: 'status', width: 100, render: (s) => {
       const opt = cfg.statusOptions.find((o) => o.value === s);
       return <Tag color={opt?.color || 'default'}>{opt?.label || s}</Tag>;
@@ -116,7 +120,7 @@ export default function LeadManage({ cfg }: { cfg: LeadConfig }) {
                     <a href={String(detail[f.key])} target="_blank" rel="noreferrer"
                       style={{ color: '#B0894F' }}>点击下载附件</a>
                   ) : (
-                    <span style={{ color: '#1C1917', wordBreak: 'break-all' }}>{String(detail[f.key] ?? '—')}</span>
+                    <span style={{ color: '#1C1917', wordBreak: 'break-all' }}>{String(detail[f.key] ?? emptyText)}</span>
                   )}
                 </div>
               ))}

@@ -1,11 +1,12 @@
 // ============================================================
 // 【代码段功能】联系我们（FR-6.4 / BR-6.2）
-//   联系信息（地址/电话/邮箱/营业时间，与后台配置同源）+ 地图占位
+//   联系信息（地址/电话/邮箱/营业时间，与后台配置同源）+ 百度地图（合规地图）
 //   + 在线预约表单（嵌入，BR-7.1）
 // ============================================================
 import { useEffect, useState } from 'react';
 import { colors, fonts, maxWidth, radius, shadow } from '../../theme/design-tokens';
 import AppointmentForm from '../../components/AppointmentForm';
+import BaiduMap from '../../components/BaiduMap';
 import { getSiteConfig, type SiteConfig } from '../../services/public';
 
 export default function Contact() {
@@ -39,11 +40,8 @@ export default function Contact() {
               </div>
             ))}
           </div>
-          {/* 地图占位（百度地图坐标，开发期展示；上线接入正式 AK） */}
-          <div style={{ height: 240, borderRadius: radius.lg, background: colors.soft, border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.muted, fontSize: 13 }}>
-            📍 地图占位（{site.map_coord || '坐标待配置'}）<br />
-            上线前接入百度地图 JS API（需百度地图开放平台 AK）
-          </div>
+          {/* 合规地图：百度地图（AK 经 VITE_BAIDU_MAP_AK 注入，缺失时显示占位） */}
+          <BaiduMap coord={site.map_coord} address={site.address} />
         </div>
 
         {/* 右：在线预约表单 */}

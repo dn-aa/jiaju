@@ -5,7 +5,7 @@
 // ============================================================
 import { useEffect, useState } from 'react';
 import {
-  Button, Card, Form, Input, Modal, Select, Space, Table, Tag, Popconfirm, message,
+  Button, Card, Form, Input, Select, Space, Table, Tag, Popconfirm, message,
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
@@ -72,35 +72,47 @@ export default function JobManage() {
 
   return (
     <div>
-      <PageHeader title="职位管理" />
-      <Card style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}>
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-          <Input.Search placeholder="搜索职位名/部门" allowClear style={{ width: 240 }} onSearch={(v) => { setPage(1); setKeyword(v); }} />
-          <div style={{ flex: 1 }} />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增职位</Button>
-        </div>
-        <Table rowKey="id" columns={columns} dataSource={list} size="middle"
-          pagination={{ total, current: page, pageSize: 10, showTotal: (t) => `共 ${t} 条`, onChange: setPage }} />
-      </Card>
-
-      {/* 职位编辑 Modal（JD 表单回填） */}
-      <Modal open={modalOpen} title={editing ? `编辑职位 · ${editing.title}` : '新增职位'} width={720}
-        onCancel={() => setModalOpen(false)} onOk={save} destroyOnClose>
-        <Form form={form} layout="vertical">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-            <Form.Item name="title" label="职位名称" rules={[{ required: true, message: '请输入职位名称' }]}><Input /></Form.Item>
-            <Form.Item name="type" label="类型" rules={[{ required: true }]}>
-              <Select options={[{ value: 'social', label: '社会招聘' }, { value: 'campus', label: '校园招聘' }]} />
-            </Form.Item>
-            <Form.Item name="dept" label="部门"><Input /></Form.Item>
-            <Form.Item name="location" label="工作地点"><Input placeholder="如：上海" /></Form.Item>
-            <Form.Item name="salary" label="薪资范围"><Input placeholder="如：15-25K（社招展示，校招可选）" /></Form.Item>
-            <Form.Item name="sort" label="排序值"><Input /></Form.Item>
-          </div>
-          <Form.Item label="岗位职责" name="responsibility"><RichText height={150} /></Form.Item>
-          <Form.Item label="任职要求" name="requirement"><RichText height={150} /></Form.Item>
-        </Form>
-      </Modal>
+      {!modalOpen ? (
+        <>
+          <PageHeader title="职位管理" />
+          <Card style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+              <Input.Search placeholder="搜索职位名/部门" allowClear style={{ width: 240 }} onSearch={(v) => { setPage(1); setKeyword(v); }} />
+              <div style={{ flex: 1 }} />
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增职位</Button>
+            </div>
+            <Table rowKey="id" columns={columns} dataSource={list} size="middle"
+              pagination={{ total, current: page, pageSize: 10, showTotal: (t) => `共 ${t} 条`, onChange: setPage }} />
+          </Card>
+        </>
+      ) : (
+        /* 内联表单（替代弹窗）：短字段 2 列网格、长字段整行 */
+        <Card
+          title={editing ? `编辑职位 · ${editing.title}` : '新增职位'}
+          extra={<Space>
+            <Button onClick={() => setModalOpen(false)}>取消</Button>
+            <Button type="primary" onClick={save}>保存</Button>
+          </Space>}
+          style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}
+        >
+          <Form form={form} layout="vertical">
+            {/* 短字段：2 列网格，一行放 2 个控件 */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 16, rowGap: 0, alignItems: 'start' }}>
+              <Form.Item name="title" label="职位名称" rules={[{ required: true, message: '请输入职位名称' }]}><Input /></Form.Item>
+              <Form.Item name="type" label="类型" rules={[{ required: true }]}>
+                <Select options={[{ value: 'social', label: '社会招聘' }, { value: 'campus', label: '校园招聘' }]} />
+              </Form.Item>
+              <Form.Item name="dept" label="部门"><Input /></Form.Item>
+              <Form.Item name="location" label="工作地点"><Input placeholder="如：上海" /></Form.Item>
+              <Form.Item name="salary" label="薪资范围"><Input placeholder="如：15-25K（社招展示，校招可选）" /></Form.Item>
+              <Form.Item name="sort" label="排序值"><Input /></Form.Item>
+            </div>
+            {/* 长字段：整行展示 */}
+            <Form.Item label="岗位职责" name="responsibility"><RichText height={150} /></Form.Item>
+            <Form.Item label="任职要求" name="requirement"><RichText height={150} /></Form.Item>
+          </Form>
+        </Card>
+      )}
     </div>
   );
 }

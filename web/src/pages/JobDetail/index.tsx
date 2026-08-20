@@ -94,8 +94,8 @@ export default function JobDetailPage() {
               <div style={{ fontFamily: fonts.display, fontSize: 22, fontWeight: 600, marginBottom: 18 }}>投递简历</div>
               {/* 基础信息 */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <Field label="姓名 *"><input style={inp} value={form.name || ''} onChange={(e) => set('name', e.target.value)} placeholder="您的姓名" /></Field>
-                <Field label="手机号 *"><input style={inp} value={form.phone || ''} onChange={(e) => set('phone', e.target.value)} placeholder="11 位手机号" /></Field>
+                <Field label="姓名 *" value={form.name}><input style={inp} value={form.name || ''} onChange={(e) => set('name', e.target.value)} placeholder="您的姓名" /></Field>
+                <Field label="手机号 *" value={form.phone}><input style={inp} value={form.phone || ''} onChange={(e) => set('phone', e.target.value)} placeholder="11 位手机号" /></Field>
               </div>
               <Field label="邮箱"><input style={{ ...inp, width: '100%' }} value={form.email || ''} onChange={(e) => set('email', e.target.value)} placeholder="选填" /></Field>
               <Field label="个人简介"><textarea style={{ ...inp, width: '100%', minHeight: 70, resize: 'vertical' }} value={form.intro || ''} onChange={(e) => set('intro', e.target.value)} placeholder="一句话介绍自己（选填）" /></Field>
@@ -124,7 +124,7 @@ export default function JobDetailPage() {
                   {file ? `已选择：${file.name}（${(file.size / 1024).toFixed(0)}KB）` : '点击上传简历附件（PDF/Word ≤10MB）'}
                 </button>
               </Field>
-              <Field label="验证码 *">
+              <Field label="验证码 *" value={captcha.captcha_code}>
                 <CaptchaInput value={captcha} onChange={setCaptcha} />
               </Field>
               <PrivacyAgree agreed={agreed} onChange={setAgreed} />
@@ -141,12 +141,25 @@ export default function JobDetailPage() {
 }
 
 // 表单字段容器 + 通用输入样式
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, value, children }: { label: string; value?: string | number; children: React.ReactNode }) {
+  // 必填项：字段填写内容后红色 * 消失（已满足则不再提示）；空时显示红色 *
+  const showStar = !(value !== undefined && value !== '');
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>{renderStarLabel(label, showStar)}</div>
       {children}
     </div>
   );
+}
+
+// 必填星标 * 渲染为红色（其余文案保持弱化灰）；showStar=false 时不渲染 *
+function renderStarLabel(label: string, showStar: boolean) {
+  const parts = label.split('*');
+  return parts.map((seg, i) => (
+    <span key={i}>
+      {seg}
+      {showStar && i < parts.length - 1 && <span style={{ color: colors.danger }}>*</span>}
+    </span>
+  ));
 }
 const inp: React.CSSProperties = { padding: '10px 12px', borderRadius: 8, border: '1px solid #d6d3d1', fontSize: 14, fontFamily: 'inherit', outline: 'none' };

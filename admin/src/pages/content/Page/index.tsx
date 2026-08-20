@@ -5,7 +5,7 @@
 // ============================================================
 import { useEffect, useState } from 'react';
 import {
-  Button, Card, DatePicker, Form, Input, Modal, Space, Table, Popconfirm, message, Divider, Tabs,
+  Button, Card, DatePicker, Form, Input, Space, Table, Popconfirm, message, Divider, Tabs,
 } from 'antd';
 import { PlusOutlined, SaveOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
@@ -92,34 +92,47 @@ function BannerTab() {
   ];
 
   return (
-    <>
-      <div style={{ display: 'flex', marginBottom: 16 }}>
-        <div style={{ flex: 1 }} />
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增 Banner</Button>
-      </div>
-      <Table rowKey="id" columns={columns} dataSource={list} pagination={false} size="middle" />
-
-      <Modal open={modalOpen} title={editing ? '编辑 Banner' : '新增 Banner'} width={560}
-        onCancel={() => setModalOpen(false)} onOk={save} destroyOnClose>
-        <Form form={form} layout="vertical">
-          <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 16, alignItems: 'start' }}>
-            <Form.Item label="轮播图片" name="image" rules={[{ required: true, message: '请上传图片' }]} valuePropName="value">
-              <UploadImage width={140} height={70} tip="点击上传" />
-            </Form.Item>
-            <div>
-              <Form.Item name="title" label="标题"><Input /></Form.Item>
-              <Form.Item name="subtitle" label="副标题"><Input /></Form.Item>
+    <div>
+      {!modalOpen ? (
+        <>
+          <div style={{ display: 'flex', marginBottom: 16 }}>
+            <div style={{ flex: 1 }} />
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增 Banner</Button>
+          </div>
+          <Table rowKey="id" columns={columns} dataSource={list} pagination={false} size="middle" />
+        </>
+      ) : (
+        /* 内联表单（替代弹窗）：短字段网格、长字段整行 */
+        <Card
+          title={editing ? '编辑 Banner' : '新增 Banner'}
+          extra={<Space>
+            <Button onClick={() => setModalOpen(false)}>取消</Button>
+            <Button type="primary" onClick={save}>保存</Button>
+          </Space>}
+          style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}
+        >
+          <Form form={form} layout="vertical">
+            {/* 封面 + 标题/副标题 */}
+            <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 16, alignItems: 'start' }}>
+              <Form.Item label="轮播图片" name="image" rules={[{ required: true, message: '请上传图片' }]} valuePropName="value">
+                <UploadImage width={140} height={70} tip="点击上传" />
+              </Form.Item>
+              <div>
+                <Form.Item name="title" label="标题"><Input /></Form.Item>
+                <Form.Item name="subtitle" label="副标题"><Input /></Form.Item>
+              </div>
             </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 16px' }}>
-            <Form.Item name="link" label="跳转链接"><Input placeholder="如 /products" /></Form.Item>
-            <Form.Item name="online_at" label="生效时间"><DatePicker showTime style={{ width: '100%' }} /></Form.Item>
-            <Form.Item name="offline_at" label="失效时间"><DatePicker showTime style={{ width: '100%' }} /></Form.Item>
-          </div>
-          <Form.Item name="sort" label="排序值"><Input /></Form.Item>
-        </Form>
-      </Modal>
-    </>
+            {/* 短字段：3 列一行 */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', columnGap: 16, rowGap: 0, alignItems: 'start' }}>
+              <Form.Item name="link" label="跳转链接"><Input placeholder="如 /products" /></Form.Item>
+              <Form.Item name="online_at" label="生效时间"><DatePicker showTime style={{ width: '100%' }} /></Form.Item>
+              <Form.Item name="offline_at" label="失效时间"><DatePicker showTime style={{ width: '100%' }} /></Form.Item>
+            </div>
+            <Form.Item name="sort" label="排序值"><Input /></Form.Item>
+          </Form>
+        </Card>
+      )}
+    </div>
   );
 }
 

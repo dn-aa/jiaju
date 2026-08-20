@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { colors, fonts, maxWidth, radius, shadow } from '../../theme/design-tokens';
 import { getCases, type CaseBrief } from '../../services/public';
+import Pagination from '../../components/Pagination';
 
 const PAGE_SIZE = 6;
 
@@ -69,17 +70,8 @@ export default function Cases() {
           </div>
         )}
 
-        {data.total > PAGE_SIZE && (
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 32 }}>
-            {Array.from({ length: Math.ceil(data.total / PAGE_SIZE) }, (_, i) => i + 1).map((n) => (
-              <button key={n} onClick={() => setPage(n)}
-                style={{ width: 36, height: 36, borderRadius: 8, border: 'none', cursor: 'pointer',
-                  background: n === page ? colors.gold : colors.soft, color: n === page ? '#fff' : colors.ink }}>
-                {n}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* 分页器：有数据时始终显示 */}
+        <Pagination current={page} total={data.total} pageSize={PAGE_SIZE} onChange={setPage} />
       </div>
     </div>
   );

@@ -6,7 +6,7 @@
 // ============================================================
 import { useEffect, useState } from 'react';
 import {
-  Button, Card, Form, Input, InputNumber, Modal, Select, Space, Switch,
+  Button, Card, Form, Input, InputNumber, Select, Space, Switch,
   Table, Tabs, Tag, Upload, message, Popconfirm,
 } from 'antd';
 import { PlusOutlined, CopyOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
@@ -47,6 +47,8 @@ export default function ProductManage() {
 }
 
 // ==================== 产品列表 ====================
+// 说明：新增/编辑改为「当前页面内联表单」（非弹窗）。短字段用 2 列网格一行放 2 个控件，
+// 长字段（封面图/规格参数/关联案例/富文本）整行展示，解决参数较多时弹窗无法同屏展示全部内容的问题。
 function ProductTab() {
   const [list, setList] = useState<Product[]>([]);
   const [total, setTotal] = useState(0);
@@ -54,7 +56,7 @@ function ProductTab() {
   const [keyword, setKeyword] = useState('');
   const [cats, setCats] = useState<Category[]>([]);
   const [caseOptions, setCaseOptions] = useState<{ value: number; label: string }[]>([]);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);   // 内联表单是否显示（替代原 Modal）
   const [editing, setEditing] = useState<Product | null>(null);
   const [form] = Form.useForm();
 
@@ -71,8 +73,8 @@ function ProductTab() {
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, keyword]);
 
-  // 打开新增/编辑 Modal：编辑时用 detail 回填表单（PRD §7 通用约定）
-  const openModal = async (item?: Product) => {
+  // 打开内联表单（新增/编辑）：编辑时用 detail 回填表单（PRD §7 通用约定）
+  const openForm = async (item?: Product) => {
     if (item) {
       const detail = await productApi.get(item.id);   // 编辑回填数据源
       setEditing(detail);
@@ -86,7 +88,14 @@ function ProductTab() {
       form.resetFields();
       form.setFieldsValue({ status: 'draft', is_top: 0, sort: 0 });
     }
-    setModalOpen(true);
+    setFormOpen(true);
+  };
+
+  // 关闭内联表单并重置状态
+  const closeForm = () => {
+    setFormOpen(false);
+    setEditing(null);
+    form.resetFields();
   };
 
   // 保存：新增走 POST（即时上列表），编辑走 PUT（回填保存）
@@ -101,7 +110,8 @@ function ProductTab() {
     if (editing) await productApi.update(editing.id, payload);
     else await productApi.create(payload);
     message.success(editing ? '保存成功' : '新增成功');
-    setModalOpen(false);
+    setFormOpen(false);
+    setEditing(null);
     load();
   };
 
@@ -123,7 +133,7 @@ function ProductTab() {
     { title: '发布状态', dataIndex: 'status', width: 120, render: (s, r) => <StatusTag status={s} onChange={(next) => changeStatus(r.id, next)} /> },
     { title: '操作', width: 140, render: (_, r) => (
       <Space size={10}>
-        <a style={{ color: '#B0894F' }} onClick={() => openModal(r)}>编辑</a>
+        <a style={{ color: '#B0894F' }} onClick={() => openForm(r)}>编辑</a>
         <Popconfirm title="确认删除该产品？此操作将记录日志" onConfirm={async () => { await productApi.remove(r.id); message.success('已删除'); load(); }}>
           <a style={{ color: '#FF4D4F' }}>删除</a>
         </Popconfirm>
@@ -132,47 +142,58 @@ function ProductTab() {
   ];
 
   return (
-    <>
-      {/* 工具栏：搜索 + 新增（新增后即时上列表） */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-        <Input.Search placeholder="搜索名称/编号/系列" allowClear style={{ width: 260 }}
-          onSearch={(v) => { setPage(1); setKeyword(v); }} />
-        <div style={{ flex: 1 }} />
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增产品</Button>
-      </div>
-      <Table rowKey="id" columns={columns} dataSource={list} size="middle"
-        pagination={{ total, current: page, pageSize: 10, showTotal: (t) => `共 ${t} 条`, onChange: setPage }} />
-
-      {/* 新增/编辑 Modal：带数据回填（标题含对象名） */}
-      <Modal open={modalOpen} title={editing ? `编辑产品 · ${editing.name}` : '新增产品'}
-        width={720} onCancel={() => setModalOpen(false)} onOk={save} destroyOnClose>
-        <Form form={form} layout="vertical">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-            <Form.Item name="name" label="产品名称" rules={[{ required: true, message: '请输入产品名称' }]}>
-              <Input placeholder="如：云隐布艺沙发" />
-            </Form.Item>
-            <Form.Item name="product_code" label="产品编号" rules={[{ required: true, message: '请输入产品编号' }]}>
-              <Input placeholder="唯一编号，如 TP-S-001" />
-            </Form.Item>
-            <Form.Item name="category_id" label="空间分类" rules={[{ required: true }]}>
-              <Select options={cats.map((c) => ({ value: c.id, label: c.name }))} placeholder="选择空间分类" />
-            </Form.Item>
-            <Form.Item name="series" label="系列" rules={[{ required: true, message: '请输入系列' }]}>
-              <Input placeholder="如：胡桃木" />
-            </Form.Item>
+    <div>
+      {!formOpen ? (
+        <>
+          {/* 工具栏：搜索 + 新增（新增后即时上列表） */}
+          <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+            <Input.Search placeholder="搜索名称/编号/系列" allowClear style={{ width: 260 }}
+              onSearch={(v) => { setPage(1); setKeyword(v); }} />
+            <div style={{ flex: 1 }} />
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => openForm()}>+ 新增产品</Button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 16px' }}>
-            <Form.Item name="sort" label="排序值"><InputNumber style={{ width: '100%' }} /></Form.Item>
-            <Form.Item name="status" label="发布状态" rules={[{ required: true }]}>
-              <Select options={[
-                { value: 'on', label: '上架' }, { value: 'off', label: '下架' }, { value: 'draft', label: '草稿' },
-              ]} />
-            </Form.Item>
-            <Form.Item name="is_top" label="置顶" valuePropName="checked">
-              <Switch checkedChildren="置顶" unCheckedChildren="否" />
-            </Form.Item>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
+          <Table rowKey="id" columns={columns} dataSource={list} size="middle"
+            pagination={{ total, current: page, pageSize: 10, showTotal: (t) => `共 ${t} 条`, onChange: setPage }} />
+        </>
+      ) : (
+        /* 内联表单（替代弹窗）：短字段 2 列网格、长字段整行，保证同屏可见全部内容 */
+        <Card
+          title={editing ? `编辑产品 · ${editing.name}` : '新增产品'}
+          extra={<Space>
+            <Button onClick={closeForm}>取消</Button>
+            <Button type="primary" onClick={save}>保存</Button>
+          </Space>}
+          style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}
+        >
+          <Form form={form} layout="vertical">
+            {/* 短字段：2 列网格，自动换行（值少一行放 2 个控件） */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 16, rowGap: 0, alignItems: 'start' }}>
+              <Form.Item name="name" label="产品名称" rules={[{ required: true, message: '请输入产品名称' }]}>
+                <Input placeholder="如：云隐布艺沙发" />
+              </Form.Item>
+              <Form.Item name="product_code" label="产品编号" rules={[{ required: true, message: '请输入产品编号' }]}>
+                <Input placeholder="唯一编号，如 TP-S-001" />
+              </Form.Item>
+              <Form.Item name="category_id" label="空间分类" rules={[{ required: true }]}>
+                <Select options={cats.map((c) => ({ value: c.id, label: c.name }))} placeholder="选择空间分类" />
+              </Form.Item>
+              <Form.Item name="series" label="系列" rules={[{ required: true, message: '请输入系列' }]}>
+                <Input placeholder="如：胡桃木" />
+              </Form.Item>
+            </div>
+            {/* 小控件：排序 / 状态 / 置顶 紧凑一行 */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', columnGap: 16, rowGap: 0, alignItems: 'start' }}>
+              <Form.Item name="sort" label="排序值"><InputNumber style={{ width: '100%' }} /></Form.Item>
+              <Form.Item name="status" label="发布状态" rules={[{ required: true }]}>
+                <Select options={[
+                  { value: 'on', label: '上架' }, { value: 'off', label: '下架' }, { value: 'draft', label: '草稿' },
+                ]} />
+              </Form.Item>
+              <Form.Item name="is_top" label="置顶" valuePropName="checked">
+                <Switch checkedChildren="置顶" unCheckedChildren="否" />
+              </Form.Item>
+            </div>
+            {/* 长字段：整行展示（值内容多，独占一行） */}
             <Form.Item label="封面图片" name="cover_image" valuePropName="value">
               <UploadImage width={120} height={120} tip="点击上传/替换（JPG/PNG/WebP ≤2MB）" />
             </Form.Item>
@@ -192,18 +213,18 @@ function ProductTab() {
                 )}
               </Form.List>
             </Form.Item>
-          </div>
-          {/* 关联案例（BR-2 关联产品；前台产品详情"案例应用"区块展示） */}
-          <Form.Item name="related_case_ids" label="关联案例（可多选）">
-            <Select mode="multiple" allowClear placeholder="选择该产品应用到的案例"
-              options={caseOptions} optionFilterProp="label" />
-          </Form.Item>
-          <Form.Item label="产品描述（富文本）" name="description">
-            <RichText height={200} />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </>
+            {/* 关联案例（BR-2 关联产品；前台产品详情"案例应用"区块展示） */}
+            <Form.Item name="related_case_ids" label="关联案例（可多选）">
+              <Select mode="multiple" allowClear placeholder="选择该产品应用到的案例"
+                options={caseOptions} optionFilterProp="label" />
+            </Form.Item>
+            <Form.Item label="产品描述（富文本）" name="description">
+              <RichText height={200} />
+            </Form.Item>
+          </Form>
+        </Card>
+      )}
+    </div>
   );
 }
 
@@ -252,22 +273,35 @@ function CategoryTab() {
   ];
 
   return (
-    <>
-      <div style={{ display: 'flex', marginBottom: 16 }}>
-        <div style={{ flex: 1 }} />
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增分类</Button>
-      </div>
-      <Table rowKey="id" columns={columns} dataSource={list} pagination={false} size="middle" />
-      <Modal open={modalOpen} title={editing ? '编辑分类' : '新增分类'} onCancel={() => setModalOpen(false)}
-        onOk={save} destroyOnClose>
-        <Form form={form} layout="vertical">
-          <Form.Item name="name" label="分类名称" rules={[{ required: true, message: '请输入分类名称' }]}>
-            <Input placeholder="如：客厅 / 卧室 / 全屋" />
-          </Form.Item>
-          <Form.Item name="sort" label="排序值"><InputNumber style={{ width: '100%' }} /></Form.Item>
-        </Form>
-      </Modal>
-    </>
+    <div>
+      {!modalOpen ? (
+        <>
+          <div style={{ display: 'flex', marginBottom: 16 }}>
+            <div style={{ flex: 1 }} />
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>+ 新增分类</Button>
+          </div>
+          <Table rowKey="id" columns={columns} dataSource={list} pagination={false} size="middle" />
+        </>
+      ) : (
+        <Card
+          title={editing ? '编辑分类' : '新增分类'}
+          extra={<Space>
+            <Button onClick={() => setModalOpen(false)}>取消</Button>
+            <Button type="primary" onClick={save}>保存</Button>
+          </Space>}
+          style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(28,25,23,.05)' }}
+        >
+          <Form form={form} layout="vertical">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 16, rowGap: 0, alignItems: 'start' }}>
+              <Form.Item name="name" label="分类名称" rules={[{ required: true, message: '请输入分类名称' }]}>
+                <Input placeholder="如：客厅 / 卧室 / 全屋" />
+              </Form.Item>
+              <Form.Item name="sort" label="排序值"><InputNumber style={{ width: '100%' }} /></Form.Item>
+            </div>
+          </Form>
+        </Card>
+      )}
+    </div>
   );
 }
 

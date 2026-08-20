@@ -51,9 +51,9 @@ export default function AppointmentForm() {
   return (
     <div style={{ fontFamily: fonts.body }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <F label="姓名 *"><input style={inp} value={form.name || ''} onChange={(e) => set('name', e.target.value)} placeholder="您的称呼" /></F>
-        <F label="手机号 *"><input style={inp} value={form.phone || ''} onChange={(e) => set('phone', e.target.value)} placeholder="11 位手机号" /></F>
-        <F label="预约日期 *"><input style={inp} type="date" min={today} value={form.appointment_date || ''} onChange={(e) => set('appointment_date', e.target.value)} /></F>
+        <F label="姓名 *" value={form.name}><input style={inp} value={form.name || ''} onChange={(e) => set('name', e.target.value)} placeholder="您的称呼" /></F>
+        <F label="手机号 *" value={form.phone}><input style={inp} value={form.phone || ''} onChange={(e) => set('phone', e.target.value)} placeholder="11 位手机号" /></F>
+        <F label="预约日期 *" value={form.appointment_date}><input style={inp} type="date" min={today} value={form.appointment_date || ''} onChange={(e) => set('appointment_date', e.target.value)} /></F>
         <F label="时段">
           <select style={inp} value={form.slot || ''} onChange={(e) => set('slot', e.target.value)}>
             <option value="">请选择时段</option>
@@ -62,7 +62,7 @@ export default function AppointmentForm() {
         </F>
       </div>
       <F label="预约备注"><textarea style={{ ...inp, width: '100%', minHeight: 60, resize: 'vertical' }} value={form.note || ''} onChange={(e) => set('note', e.target.value)} placeholder="想了解的品类/需求（选填）" /></F>
-      <F label="验证码 *"><CaptchaInput value={captcha} onChange={setCaptcha} /></F>
+      <F label="验证码 *" value={captcha.captcha_code}><CaptchaInput value={captcha} onChange={setCaptcha} /></F>
       <PrivacyAgree agreed={agreed} onChange={setAgreed} />
       <button onClick={submit} disabled={submitting} style={{
         width: '100%', marginTop: 6, padding: 13, borderRadius: 999, border: 'none',
@@ -72,12 +72,25 @@ export default function AppointmentForm() {
   );
 }
 
-function F({ label, children }: { label: string; children: React.ReactNode }) {
+function F({ label, value, children }: { label: string; value?: string | number; children: React.ReactNode }) {
+  // 必填项：字段填写内容后红色 * 消失（已满足则不再提示）；空时显示红色 *
+  const showStar = !(value !== undefined && value !== '');
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>{renderStarLabel(label, showStar)}</div>
       {children}
     </div>
   );
+}
+
+// 必填星标 * 渲染为红色（其余文案保持弱化灰）；showStar=false 时不渲染 *
+function renderStarLabel(label: string, showStar: boolean) {
+  const parts = label.split('*');
+  return parts.map((seg, i) => (
+    <span key={i}>
+      {seg}
+      {showStar && i < parts.length - 1 && <span style={{ color: colors.danger }}>*</span>}
+    </span>
+  ));
 }
 const inp: React.CSSProperties = { width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #d6d3d1', fontSize: 14, fontFamily: 'inherit', outline: 'none' };

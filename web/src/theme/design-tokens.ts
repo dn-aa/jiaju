@@ -9,7 +9,8 @@ export const colors = {
   ink2: '#44403C',      // 次级文字
   muted: '#78716C',     // 弱化文字
   gold: '#B0894F',      // 香槟金：CTA、强调、链接
-  goldD: '#97763F',     // 金色按下/深 hover
+  goldD: '#97763F',
+  danger: '#E5484D',    // 警示红：必填星标 *、错误提示
   bg: '#FAFAF9',        // 米白页面底
   surface: '#FFFFFF',   // 卡片表面
   soft: '#F5F3EF',      // 浅金灰区块底
