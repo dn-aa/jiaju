@@ -33,7 +33,10 @@ Thumbs.db
 .tools/
 deploy/data/
 logs/
-uploads/
+
+# ===== 上传目录：仅忽略含个人隐私的简历/附件；前台配图 image/ 需入库 =====
+api/uploads/resume/
+api/uploads/attachment/
 
 # ===== 远程镜像仓库（github_src/ 独立管理，不纳入主仓库）=====
 github_src/
