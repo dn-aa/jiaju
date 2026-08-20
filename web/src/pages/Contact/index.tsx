@@ -39,10 +39,10 @@ export default function Contact() {
               </div>
             ))}
           </div>
-          {/* 地图占位（腾讯地图坐标，开发期展示；上线接入正式 key） */}
+          {/* 地图占位（百度地图坐标，开发期展示；上线接入正式 AK） */}
           <div style={{ height: 240, borderRadius: radius.lg, background: colors.soft, border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.muted, fontSize: 13 }}>
             📍 地图占位（{site.map_coord || '坐标待配置'}）<br />
-            上线前接入腾讯地图 JS SDK
+            上线前接入百度地图 JS API（需百度地图开放平台 AK）
           </div>
         </div>
 

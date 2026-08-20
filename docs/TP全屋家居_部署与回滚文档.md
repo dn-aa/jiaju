@@ -1,10 +1,10 @@
 # TP 全屋家居 · 部署与回滚文档
 
-| 项 | 内容 |
-|----|------|
-| 文档版本 | v1.0 |
-| 适用范围 | 阶段 7（部署与上线 M5） |
-| 依据 | 开发技术文档 v1.4 §10 / 实施方案 §8 |
+| 项    | 内容                        |
+| ---- | ------------------------- |
+| 文档版本 | v1.0                      |
+| 适用范围 | 阶段 7（部署与上线 M5）            |
+| 依据   | 开发技术文档 v1.4 §10 / 实施方案 §8 |
 
 ---
 
@@ -24,26 +24,26 @@
 
 ## 2. 上线前置
 
-| 项 | 说明 | 状态 |
-|----|------|------|
-| 服务器 | Linux + Docker（≥24）+ Docker Compose v2 | 待提供 |
-| 域名 | 前台/后台域名或子域 | 待提供 |
-| ICP 备案 | 页脚备案号（当前占位 `粤ICP备XXXXXXXX号`） | 待提供 |
-| 腾讯地图 Key | 联系我们页合规地图接入（当前为占位图） | 待提供 |
-| 隐私政策/用户协议 | 前台已上线草稿版（/privacy、/terms），正式文案由甲方确认 | 草稿 |
+| 项         | 说明                                     | 状态  |
+| --------- | -------------------------------------- | --- |
+| 服务器       | Linux + Docker（≥24）+ Docker Compose v2 | 待提供 |
+| 域名        | 前台/后台域名或子域                             | 待提供 |
+| ICP 备案    | 页脚备案号（当前占位 `粤ICP备XXXXXXXX号`）           | 待提供 |
+| 百度地图 AK | 联系我们页合规地图接入（百度地图开放平台，当前为占位图） | 待提供 |
+| 隐私政策/用户协议 | 前台已上线草稿版（/privacy、/terms），正式文案由甲方确认    | 草稿  |
 
 ## 3. 环境变量清单（deploy/.env，模板见 deploy/.env.example）
 
-| 变量 | 必填 | 说明 |
-|------|------|------|
-| `MYSQL_ROOT_PASSWORD` | ✅ | 数据库口令（生产必须修改，建议 `openssl rand -hex 16`） |
-| `MYSQL_DATABASE` | — | 库名，默认 `tp_home_prod` |
-| `JWT_SECRET` | ✅ | 令牌签名密钥（`openssl rand -hex 32`，变更后旧 token 全部失效） |
-| `JWT_ACCESS_TTL` / `JWT_REFRESH_TTL` | — | 默认 30m / 7d |
-| `STORAGE_KIND` | — | `local`（默认）或 `oss`（切换时配置 `OSS_*`） |
-| `CORS_ORIGINS` | — | 生产收紧为实际站点域名 |
-| `CAPTCHA_ENABLED` | — | 默认 `true`（防刷开关） |
-| `SEED_ADMIN_PASSWORD` | ✅ 首次 | 种子初始管理员强密码（api 容器内注入） |
+| 变量                                   | 必填   | 说明                                             |
+| ------------------------------------ | ---- | ---------------------------------------------- |
+| `MYSQL_ROOT_PASSWORD`                | ✅    | 数据库口令（生产必须修改，建议 `openssl rand -hex 16`）        |
+| `MYSQL_DATABASE`                     | —    | 库名，默认 `tp_home_prod`                           |
+| `JWT_SECRET`                         | ✅    | 令牌签名密钥（`openssl rand -hex 32`，变更后旧 token 全部失效） |
+| `JWT_ACCESS_TTL` / `JWT_REFRESH_TTL` | —    | 默认 30m / 7d                                    |
+| `STORAGE_KIND`                       | —    | `local`（默认）或 `oss`（切换时配置 `OSS_*`）              |
+| `CORS_ORIGINS`                       | —    | 生产收紧为实际站点域名                                    |
+| `CAPTCHA_ENABLED`                    | —    | 默认 `true`（防刷开关）                                |
+| `SEED_ADMIN_PASSWORD`                | ✅ 首次 | 种子初始管理员强密码（api 容器内注入）                          |
 
 ## 4. 首次上线步骤
 
@@ -66,7 +66,7 @@ curl -s http://localhost:8080/api/public/home   # 前台首页数据
 # 后台初始账号：admin / SEED_ADMIN_PASSWORD 所设密码
 ```
 
-> 迁移：`api` 容器 CMD 内置 `alembic upgrade head`（幂等）；如手动执行：
+> 迁移：`api` 容器 CMD 内置 `alembic upgrade head`（幂等）；如手动执行：  
 > `docker compose exec api alembic upgrade head`
 
 ## 5. HTTPS 与域名分流（生产）
@@ -90,12 +90,12 @@ server { listen 443 ssl; server_name admin.tp-home.com; ... proxy_pass http://12
 
 ## 6. 回滚流程
 
-| 场景 | 操作 |
-|------|------|
-| **代码回滚** | 镜像按 git tag 构建并固定版本：`docker compose build api:${TAG}` → `docker compose up -d api`（其余服务不变）。旧版本镜像保留 ≥3 个 tag。 |
-| **数据库回滚（结构）** | `docker compose exec api alembic downgrade -1`（仅回退最近一个变更；回滚前务必备份）。 |
-| **数据恢复** | 每日 `mysqldump` 备份 + 上传目录（`./data/uploads`）定期快照；恢复：停服 → 恢复 dump → 启动 → 校验。 |
-| **回滚演练** | 上线后建议在预发环境演练一次「代码回退 + downgrade -1」，确认耗时与影响面。 |
+| 场景            | 操作                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------ |
+| **代码回滚**      | 镜像按 git tag 构建并固定版本：`docker compose build api:${TAG}` → `docker compose up -d api`（其余服务不变）。旧版本镜像保留 ≥3 个 tag。 |
+| **数据库回滚（结构）** | `docker compose exec api alembic downgrade -1`（仅回退最近一个变更；回滚前务必备份）。                                           |
+| **数据恢复**      | 每日 `mysqldump` 备份 + 上传目录（`./data/uploads`）定期快照；恢复：停服 → 恢复 dump → 启动 → 校验。                                    |
+| **回滚演练**      | 上线后建议在预发环境演练一次「代码回退 + downgrade -1」，确认耗时与影响面。                                                                |
 
 ## 7. 备份与监控
 
