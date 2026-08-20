@@ -104,7 +104,71 @@ server { listen 443 ssl; server_name admin.tp-home.com; ... proxy_pass http://12
 - **监控建议**：`docker compose ps` 健康检查；api 日志 `docker compose logs -f api`；关键告警：磁盘、容器重启次数、接口 5xx 比例。
 - **性能基线**：见 `api/scripts/perf_baseline.py`（并发/分位/成功率），上线后定期复测（目标：核心接口 P95 ≤500ms）。
 
-## 8. 验收清单（M5）
+## 8. 附录：便携版直跑部署（无 Docker，替代 §4/§5）
+
+适用：服务器无 Docker，或希望零容器化交付。**本项目从阶段 0 起即为便携版架构**（`.tools/` 绿色目录 + `bootstrap.sh --db portable`），仅需另备一个静态托管（Nginx/IIS）。
+
+### 8.1 前置条件
+| 项 | 说明 |
+|----|------|
+| 便携 MySQL | `.tools/mysql`（Windows 版 mysqld.exe；Linux 服务器改用官方免安装 tar.gz，操作一致） |
+| 便携 Redis | `.tools/redis` |
+| 静态托管 | 系统 Nginx（推荐）或 IIS；反代配置复用 `deploy/nginx/web.conf`、`admin.conf`（仅改 `proxy_pass http://api:8000` → `http://127.0.0.1:8000`） |
+| 运行环境 | Python ≥3.11（api）+ Node ≥20（仅构建期） |
+
+### 8.2 首次上线步骤（Windows 服务器示例）
+```bash
+# 1) 拷贝便携依赖并启动（生产需改强密码：MYSQL_ROOT_PWD=xxx ./.tools/start-deps.sh）
+cp -r .tools/mysql .tools/redis 服务器对应目录/
+MYSQL_ROOT_PWD=强密码 bash .tools/start-deps.sh   # 启动 3306 + 6379
+
+# 2) 后端：迁移 → 种子（强密码）→ 4 worker 直跑
+cd api && pip install -r requirements.txt
+set DATABASE_URL=mysql+pymysql://root:强密码@127.0.0.1:3306/tp_home_prod?charset=utf8mb4
+set JWT_SECRET=$(openssl rand -hex 32)   # Windows: 任意 64 位十六进制串
+alembic upgrade head
+set SEED_ADMIN_PASSWORD=初始强密码 && python seed.py
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
+# 守护：Windows 计划任务 / NSSM，或 Linux systemd（见下方模板）
+
+# 3) 前端：构建 → 静态托管（Nginx 反代 /api、/uploads → 127.0.0.1:8000）
+cd web && npm run build && copy dist 到 Nginx 站点根目录
+cd admin && npm run build && copy dist 到 Nginx 站点根目录
+# Nginx 配置：复用 deploy/nginx/web.conf、admin.conf，端口改 80/81 或按域名分流
+
+# 4) 验证（同 §4 第 4 步）
+```
+
+### 8.3 Linux systemd 守护模板（api）
+```ini
+# /etc/systemd/system/tp-home-api.service
+[Unit]
+Description=TP Home API
+After=network.target
+[Service]
+WorkingDirectory=/opt/tp-home/api
+ExecStart=/opt/tp-home/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
+EnvironmentFile=/opt/tp-home/api/.env
+Restart=always
+[Install]
+WantedBy=multi-user.target
+```
+
+### 8.4 备份 / 回滚（便携版）
+- **备份**：① 数据目录整体拷贝（`.tools/mysql-data`，停服或 XtraBackup 下执行）；② 每日 `mysqldump`；③ 上传目录 `api/uploads` 快照。
+- **代码回滚**：git tag 切换 → 重启 uvicorn + 静态站点。
+- **结构回滚**：`alembic downgrade -1`（回滚前备份）。
+- **便携版优势**：目录拷贝即环境重建，回滚演练成本低（如本次开发环境 InnoDB 故障，即靠 `.tools/mysql-data-backup-*` 目录级备份完整恢复）。
+
+### 8.5 与容器化方案的差异
+| 项 | 容器化（§4） | 便携版直跑（§8） |
+|----|------------|------------------|
+| 依赖环境 | Docker 镜像（含 MySQL/Redis） | 系统自带/便携目录 |
+| 数据库上线 | 容器 CMD 自动迁移 | 手动 `alembic upgrade head`（或脚本） |
+| 守护进程 | compose restart | systemd / 计划任务 / NSSM |
+| 适用 | Linux 服务器、多机编排 | 单机快速交付、Windows 服务器 |
+
+## 9. 验收清单（M5）
 
 - [ ] 五服务 compose 一键启动，健康检查通过
 - [ ] `alembic upgrade head` 执行成功，20 表结构就绪
