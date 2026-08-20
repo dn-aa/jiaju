@@ -7,7 +7,7 @@
     保证 OpenAPI 文档可见且避免为 11 个资源手写重复 Out。
 """
 from datetime import date, datetime
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
 
@@ -121,8 +121,9 @@ class JobIn(BaseModel):
 # ---------- Banner（BR-6.1） ----------
 
 class BannerIn(BaseModel):
-    """首页轮播：图片/标题/副标题/链接/生效失效时间。"""
+    """首页轮播：图片/标题/副标题/链接/生效失效时间 + 轮播多图（阶段 7）。"""
     image: str = Field(min_length=1, max_length=512)
+    images: Optional[List[str]] = None      # 轮播多图 URL 列表（首页按序轮播）
     title: Optional[str] = None
     subtitle: Optional[str] = None
     link: Optional[str] = None

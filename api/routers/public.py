@@ -97,7 +97,7 @@ def home(db: Session = Depends(get_db)):
         if cached:
             return ok(json.loads(cached))
     now = datetime.now()
-    banners = [{"id": b.id, "image": b.image, "title": b.title, "subtitle": b.subtitle, "link": b.link}
+    banners = [{"id": b.id, "image": b.image, "images": b.images or [], "title": b.title, "subtitle": b.subtitle, "link": b.link}
                for b in db.query(Banner).filter(Banner.is_activate == 1).order_by(Banner.sort.asc()).all()
                if (b.online_at is None or b.online_at <= now) and (b.offline_at is None or b.offline_at >= now)]
     categories = [{"id": c.id, "name": c.name} for c in

@@ -13,11 +13,12 @@ import dayjs from 'dayjs';
 import PageHeader from '../../../components/PageHeader';
 import StatusTag from '../../../components/StatusTag';
 import UploadImage from '../../../components/UploadImage';
+import MultiUploadImages from '../../../components/MultiUploadImages';
 import RichText from '../../../components/RichText';
 import { cmsApi } from '../../../services/cms';
 import { getData, putData } from '../../../services/http';
 
-interface Banner { id: number; image: string; title?: string | null; subtitle?: string | null; link?: string | null; sort: number; online_at?: string | null; offline_at?: string | null; is_activate: number }
+interface Banner { id: number; image: string; images?: string[] | null; title?: string | null; subtitle?: string | null; link?: string | null; sort: number; online_at?: string | null; offline_at?: string | null; is_activate: number }
 interface PageItem { id: number; key: string; title?: string | null; content?: string | null; is_activate?: number }
 interface SiteConfig { address?: string; phone?: string; email?: string; hours?: string; map_coord?: string; appointment_slots?: string[] }
 
@@ -114,7 +115,7 @@ function BannerTab() {
           <Form form={form} layout="vertical">
             {/* 封面 + 标题/副标题 */}
             <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 16, alignItems: 'start' }}>
-              <Form.Item label="轮播图片" name="image" rules={[{ required: true, message: '请上传图片' }]} valuePropName="value">
+              <Form.Item label="主图/封面" name="image" rules={[{ required: true, message: '请上传图片' }]} valuePropName="value">
                 <UploadImage width={140} height={70} tip="点击上传" />
               </Form.Item>
               <div>
@@ -122,6 +123,10 @@ function BannerTab() {
                 <Form.Item name="subtitle" label="副标题"><Input /></Form.Item>
               </div>
             </div>
+            {/* 轮播多图：新增 Banner 可插入多张图片（首页按序轮播展示） */}
+            <Form.Item name="images" label="轮播图集（多张）" valuePropName="value" initialValue={[]}>
+              <MultiUploadImages max={5} tip="可上传多张图片，首页将按此顺序轮播展示；不填时使用上方主图" />
+            </Form.Item>
             {/* 短字段：3 列一行 */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', columnGap: 16, rowGap: 0, alignItems: 'start' }}>
               <Form.Item name="link" label="跳转链接"><Input placeholder="如 /products" /></Form.Item>

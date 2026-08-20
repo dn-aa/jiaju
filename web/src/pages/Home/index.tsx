@@ -22,27 +22,33 @@ export default function Home() {
   // 首页数据：React Query 缓存 + 自动请求（对齐技术栈）
   const { data } = useHome();
 
-  // Banner 自动轮播（4.5s 一帧；多图时启用）
+  // 轮播帧 = 每个 Banner 的多图展平（images 存在则逐张一帧，否则主图单帧）
+  const slides = (data?.banners || []).flatMap((b) => {
+    const imgs = b.images && b.images.length ? b.images : [b.image];
+    return imgs.map((img) => ({ id: `${b.id}-${img}`, img, title: b.title, subtitle: b.subtitle, link: b.link }));
+  });
+
+  // Banner 自动轮播（4.5s 一帧；多图/多条时启用）
   useEffect(() => {
-    if (!data?.banners?.length || data.banners.length < 2) return;
-    const t = setInterval(() => setBannerIdx((i) => (i + 1) % data.banners.length), 4500);
+    if (slides.length < 2) return;
+    const t = setInterval(() => setBannerIdx((i) => (i + 1) % slides.length), 4500);
     return () => clearInterval(t);
-  }, [data]);
+  }, [slides.length]);
 
   if (!data) return <div style={{ padding: '120px 0', textAlign: 'center', color: '#a8a29e' }}>加载中...</div>;
 
-  const { banners, categories, hot_products, new_cases, news, steps, reviews } = data;
+  const { categories, hot_products, new_cases, news, steps, reviews } = data;
 
   return (
     <div style={{ fontFamily: fonts.body }}>
       {/* ================= ① Hero：Banner 轮播（无图时墨色渐变占位） ================= */}
       <section style={{ position: 'relative', height: 'min(78vh, 640px)', overflow: 'hidden', background: colors.ink }}>
-        {banners.length > 0 ? (
-          banners.map((b, i) => (
-            <div key={b.id} style={{
+        {slides.length > 0 ? (
+          slides.map((s, i) => (
+            <div key={s.id} style={{
               position: 'absolute', inset: 0, opacity: i === bannerIdx ? 1 : 0, transition: 'opacity .8s',
             }}>
-              <img src={b.image} alt={b.title || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={s.img} alt={s.title || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               <div style={{
                 position: 'absolute', inset: 0,
                 background: 'linear-gradient(180deg, rgba(28,25,23,.35) 0%, rgba(28,25,23,.65) 100%)',
@@ -51,9 +57,9 @@ export default function Home() {
                 position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', textAlign: 'center',
               }}>
                 <h1 style={{ color: '#FAFAF9', fontFamily: fonts.display, fontSize: 'clamp(38px,5.5vw,68px)', fontWeight: 600, margin: 0 }}>
-                  {b.title || 'TP 全屋家居'}
+                  {s.title || 'TP 全屋家居'}
                 </h1>
-                {b.subtitle && <p style={{ color: '#e7d9c0', letterSpacing: '.08em', marginTop: 14, fontSize: 17 }}>{b.subtitle}</p>}
+                {s.subtitle && <p style={{ color: '#e7d9c0', letterSpacing: '.08em', marginTop: 14, fontSize: 17 }}>{s.subtitle}</p>}
               </div>
             </div>
           ))
@@ -82,10 +88,10 @@ export default function Home() {
             </div>
           </div>
         )}
-        {/* 轮播指示点 */}
-        {banners.length > 1 && (
+        {/* 轮播指示点（按总帧数） */}
+        {slides.length > 1 && (
           <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
-            {banners.map((_, i) => (
+            {slides.map((_, i) => (
               <button key={i} onClick={() => setBannerIdx(i)}
                 style={{ width: 8, height: 8, borderRadius: 99, border: 'none', cursor: 'pointer',
                   background: i === bannerIdx ? colors.gold : 'rgba(250,250,249,.4)' }} />

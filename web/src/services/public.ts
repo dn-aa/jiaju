@@ -4,7 +4,7 @@
 // ============================================================
 import { http } from './http';
 
-export interface Banner { id: number; image: string; title?: string | null; subtitle?: string | null; link?: string | null }
+export interface Banner { id: number; image: string; images?: string[] | null; title?: string | null; subtitle?: string | null; link?: string | null }
 export interface Category { id: number; name: string }
 export interface ProductBrief { id: number; name: string; series: string; product_code: string; cover_image?: string | null; category_id: number; is_top: number }
 export interface ProductDetail extends ProductBrief {

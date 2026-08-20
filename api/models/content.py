@@ -127,6 +127,7 @@ class Banner(TimestampMixin, Base):
     __table_args__ = (Index("idx_sort", "sort"),)
 
     image: Mapped[str] = mapped_column(String(512), comment="图片 URL")
+    images: Mapped[list | None] = mapped_column(JSON, comment="轮播多图 URL 列表（首页轮播展示，兼容 image 单图）")
     title: Mapped[str | None] = mapped_column(String(128), comment="标题")
     subtitle: Mapped[str | None] = mapped_column(String(255), comment="副标题")
     link: Mapped[str | None] = mapped_column(String(512), comment="跳转链接")
