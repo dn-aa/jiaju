@@ -1,6 +1,12 @@
-# TP 全屋家居 · 本地开发依赖编排（阶段 0：MySQL + Redis）
-# 用法：docker compose up -d mysql redis
-# 说明：web/admin/api 三个服务在阶段 7（部署）补全，见开发技术文档 §10.1。
+# ============================================================
+# TP 全屋家居 · 生产编排（阶段 7，五服务）
+#   web:8080（前台官网 nginx） / admin:8081（后台管理 nginx）
+#   api:8000（FastAPI 4 worker） / mysql:3306 / redis:6379
+# 用法：
+#   1) 复制 deploy/.env.example 为 deploy/.env 并修改生产密钥
+#   2) docker compose --env-file deploy/.env up -d --build
+#   3) 首次上线：api 容器自动执行 alembic upgrade head（种子见部署文档 §4）
+# ============================================================
 
 services:
   mysql:
@@ -8,8 +14,8 @@ services:
     container_name: tp_home_mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: tp_home_dev
-      MYSQL_DATABASE: tp_home_dev
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-tp_home_dev}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-tp_home_dev}
       TZ: Asia/Shanghai
     command:
       - --character-set-server=utf8mb4
@@ -20,7 +26,7 @@ services:
     volumes:
       - ./data/mysql:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ptp_home_dev"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD:-tp_home_dev}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -39,15 +45,46 @@ services:
       timeout: 5s
       retries: 10
 
-# ===== 阶段 7 追加（web / admin / api，需先有各包 Dockerfile）=====
-#  web:
-#    build: ../web
-#    ports: ["8080:80"]
-#  admin:
-#    build: ../admin
-#    ports: ["8081:80"]
-#  api:
-#    build: ../api
-#    ports: ["8000:8000"]
-#    environment: [DATABASE_URL, REDIS_URL, JWT_SECRET]
-#    depends_on: [mysql, redis]
+  api:
+    build: ../api
+    container_name: tp_home_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # 容器网络内使用服务名连接 MySQL/Redis
+      DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD:-tp_home_dev}@mysql:3306/${MYSQL_DATABASE:-tp_home_dev}?charset=utf8mb4
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:?生产必须设置 JWT_SECRET}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-30m}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-7d}
+      STORAGE_KIND: ${STORAGE_KIND:-local}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://localhost:8081}
+      CAPTCHA_ENABLED: ${CAPTCHA_ENABLED:-true}
+      TZ: Asia/Shanghai
+    volumes:
+      # 本地存储后端的上传目录（生产建议切换 OSS 后移除）
+      - ./data/uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build: ../web
+    container_name: tp_home_web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+  admin:
+    build: ../admin
+    container_name: tp_home_admin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    depends_on:
+      - api

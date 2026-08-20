@@ -12,7 +12,7 @@ vi.mock('../../services/public', () => ({
   submitMessage: vi.fn().mockResolvedValue({ code: 0, message: 'ok' }),
 }));
 vi.mock('../../components/CaptchaInput', () => ({
-  default: ({ value, onChange }: { value: { captcha_code: string }; onChange: (v: { captcha_code: string }) => void }) => (
+  default: ({ value, onChange }: { value: { captcha_code: string }; onChange: (v: { captcha_id: string; captcha_code: string }) => void }) => (
     <input
       placeholder="验证码"
       value={value.captcha_code}

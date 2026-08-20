@@ -124,7 +124,11 @@ export default function Layout() {
           </div>
         </div>
         <div style={{ maxWidth, margin: '24px auto 0', borderTop: '1px solid #44403C', paddingTop: 14, textAlign: 'center', color: '#78716C', fontSize: 12 }}>
-          © 2026 TP 全屋家居 · 演示项目（ICP 备案占位）
+          © 2026 TP 全屋家居 · 演示项目 ·{' '}
+          <Link to="/privacy" style={{ color: '#78716C', textDecoration: 'none' }}>隐私政策</Link>
+          {' · '}
+          <Link to="/terms" style={{ color: '#78716C', textDecoration: 'none' }}>用户协议</Link>
+          {' · '}ICP 备案号：粤ICP备XXXXXXXX号（占位，上线前补充）
         </div>
       </footer>
     </div>

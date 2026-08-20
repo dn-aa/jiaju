@@ -18,6 +18,8 @@ import About from '../pages/About';
 import Contact from '../pages/Contact';
 import Appointment from '../pages/Appointment';
 import Message from '../pages/Message';
+import Privacy from '../pages/Legal/Privacy';
+import Terms from '../pages/Legal/Terms';
 
 export const router = createBrowserRouter([
   {
@@ -38,6 +40,9 @@ export const router = createBrowserRouter([
       { path: '/contact', element: <Contact /> },
       { path: '/appointment', element: <Appointment /> },
       { path: '/message', element: <Message /> },
+      // 合规页（阶段 7：隐私政策 / 用户协议，表单授权落地页）
+      { path: '/privacy', element: <Privacy /> },
+      { path: '/terms', element: <Terms /> },
       // 兜底：未匹配回首页
       { path: '*', element: <Home /> },
     ],
