@@ -11,6 +11,7 @@ import { colors, fonts, maxWidth } from '../theme/design-tokens';
 import { getHome, getSiteConfig, type SiteConfig } from '../services/public';
 
 // 主导航（PRD §5 信息架构）
+// 含「在线留言」入口：留言页 /message 已就绪（BR-8.1），此前漏挂导航导致前台不可达
 const NAVS = [
   { to: '/', label: '首页' },
   { to: '/products', label: '产品中心' },
@@ -19,6 +20,7 @@ const NAVS = [
   { to: '/jobs', label: '加入我们' },
   { to: '/about', label: '关于我们' },
   { to: '/contact', label: '联系我们' },
+  { to: '/message', label: '在线留言' },
 ];
 
 export default function Layout() {
